@@ -1,0 +1,1742 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bebenbau">
+<meta name="theme-color" content="#ffb703">
+<meta name="description" content="Bebenbau – Brücken und Türme bauen, die Lkw, Sturm und Erdbeben aushalten.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Bebenbau</title>
+<style>:root { --y: #ffb703; --o: #f57c00; --d: #1e2430; --card: #fffdf6; --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px); }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #6fb6ec; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, "DejaVu Sans", sans-serif; color: var(--d); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+canvas { position: fixed; inset: 0; touch-action: none; display: block; }
+button { font: inherit; border: 0; cursor: pointer; color: inherit; }
+.hidden { display: none !important; }
+.screen { position: fixed; inset: 0; padding: calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px); display: flex; flex-direction: column; }
+#title { align-items: center; justify-content: flex-start; padding-top: calc(var(--safe-t) + 9vh); text-align: center; }
+.logo { background: var(--d); border-radius: 14px; padding: 6px 0; width: min(92vw, 400px); box-shadow: 0 8px 0 rgba(0,0,0,0.25); transform: rotate(-2deg); animation: wob 3s ease-in-out infinite; }
+@keyframes wob { 0%, 70%, 100% { transform: rotate(-2deg); } 75% { transform: rotate(1deg) translateX(3px); } 80% { transform: rotate(-4deg) translateX(-3px); } 85% { transform: rotate(0deg); } }
+.logo h1 { margin: 4px 0; font-size: clamp(44px, 14vw, 64px); letter-spacing: 2px; color: #fff; font-weight: 900; }
+.logo h1 span { color: var(--y); }
+.stripes { height: 12px; margin: 0 10px; border-radius: 3px; background: repeating-linear-gradient(-45deg, var(--y) 0 12px, var(--d) 12px 24px); }
+.tag { font-size: 17px; font-weight: 600; background: rgba(255,255,255,0.75); padding: 10px 14px; border-radius: 12px; margin: 22px 0; }
+.tbtns { display: flex; flex-direction: column; gap: 10px; width: min(80vw, 300px); }
+.tbtns button, .btns button { background: #fff; padding: 13px 16px; border-radius: 14px; font-weight: 700; font-size: 17px; box-shadow: 0 4px 0 rgba(0,0,0,0.18); }
+button.big { background: var(--y) !important; font-size: 20px !important; padding: 15px 18px !important; box-shadow: 0 5px 0 #c98a00 !important; }
+button:active { transform: translateY(2px); }
+.foot { margin-top: auto; font-size: 12px; opacity: 0.7; background: rgba(255,255,255,0.6); padding: 4px 8px; border-radius: 8px; }
+/* Levelauswahl */
+#levels { background: linear-gradient(#ffd166, #ffb703); overflow-y: auto; }
+.lhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.lhead h2 { margin: 0; flex: 1; font-size: 26px; font-weight: 900; }
+#startotal { font-weight: 800; background: var(--d); color: var(--y); padding: 5px 10px; border-radius: 10px; }
+#levelgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lvl { position: relative; text-align: left; background: #fffdf6; border-radius: 14px; padding: 10px 10px 8px; min-height: 118px; box-shadow: 0 4px 0 rgba(0,0,0,0.18); display: flex; flex-direction: column; gap: 4px; }
+.lvl.quake { background: linear-gradient(160deg, #fffdf6 60%, #ffe1d6); }
+.lvl.locked { opacity: 0.55; filter: grayscale(0.8); }
+.lnr { font-size: 26px; font-weight: 900; line-height: 1; color: var(--o); }
+.lname { font-weight: 800; font-size: 15px; line-height: 1.15; }
+.badges { display: flex; flex-wrap: wrap; gap: 3px; }
+.badge { font-size: 10.5px; font-weight: 800; padding: 2px 6px; border-radius: 6px; color: #fff; background: #555; }
+.badge.beben { background: #c1121f; } .badge.sturm { background: #4361ee; } .badge.lkw { background: #6c757d; } .badge.turm { background: #2a9d8f; } .badge.steg { background: #8d6a9f; }
+.lstars { margin-top: auto; font-size: 18px; font-weight: 700; }
+.st.on { color: #f4a100; text-shadow: 0 1px 0 #a66d00; } .st.off { color: #d9d4c4; }
+.linkbtn { background: transparent; text-decoration: underline; margin: 18px auto 6px; font-size: 13px; opacity: 0.75; }
+/* HUD */
+#hud { position: fixed; left: 0; right: 0; top: 0; padding: calc(var(--safe-t) + 6px) 8px 0; pointer-events: none; }
+#hud > * { pointer-events: auto; }
+.top { display: flex; align-items: center; gap: 6px; }
+.icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.92); display: grid; place-items: center; box-shadow: 0 3px 0 rgba(0,0,0,0.15); flex: none; }
+.icon svg { width: 24px; height: 24px; }
+#bsound .x { display: none; } #bsound.off .x { display: inline; } #bsound.off .wave { display: none; }
+.tmid { flex: 1; min-width: 0; background: rgba(255,255,255,0.92); border-radius: 12px; padding: 4px 10px 5px; box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
+#ltitle { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bwrap { position: relative; height: 18px; background: #e7e2d3; border-radius: 9px; overflow: hidden; margin-top: 2px; }
+#budgetbar { position: absolute; left: 0; top: 0; bottom: 0; background: #52b788; transition: width .2s; }
+#budgetbar.g2 { background: #95c623; } #budgetbar.g1 { background: #f4a100; } #budgetbar.over { background: #e63946; }
+#budget { position: relative; display: block; text-align: center; font-size: 12px; font-weight: 800; line-height: 18px; }
+#budget.over { color: #fff; }
+#loadchip { margin: 6px auto 0; width: fit-content; max-width: 100%; font-size: 11.5px; font-weight: 700; background: rgba(30,36,48,0.78); color: #fff; padding: 4px 9px; border-radius: 9px; text-align: center; }
+#warn { display: none; margin: 6px auto 0; width: fit-content; font-size: 12.5px; font-weight: 800; background: #e63946; color: #fff; padding: 5px 10px; border-radius: 9px; }
+#warn.on { display: block; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: 0.75; } }
+/* Werkzeuge */
+#tools, #testbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 6px 8px calc(var(--safe-b) + 8px); background: rgba(255,253,246,0.95); border-top: 3px solid var(--d); box-shadow: 0 -4px 14px rgba(0,0,0,0.15); }
+#tools::before, #testbar::before { content: ""; position: absolute; left: 0; right: 0; top: -9px; height: 6px; background: repeating-linear-gradient(-45deg, var(--y) 0 8px, var(--d) 8px 16px); }
+#matinfo { font-size: 12px; text-align: center; margin-bottom: 5px; color: #444; min-height: 15px; }
+#mats { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+#mats::-webkit-scrollbar { display: none; }
+.mat { flex: 1 0 64px; background: #fff; border-radius: 10px; padding: 5px 3px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid #ddd; }
+.mat.sel { border-color: var(--d); background: #ffe8a8; box-shadow: 0 0 0 2px var(--y) inset; }
+.sw { width: 34px; height: 8px; border-radius: 3px; display: block; }
+.sw.seil { height: 3px; margin: 2px 0 3px; } .sw.beton, .sw.mauer { height: 11px; }
+.mn { font-size: 11px; font-weight: 800; white-space: nowrap; } .mc { font-size: 10.5px; color: #666; }
+.acts { display: flex; gap: 6px; }
+.acts button { flex: 1; background: #fff; border-radius: 12px; padding: 6px 2px 5px; font-size: 11.5px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 1px; box-shadow: 0 3px 0 rgba(0,0,0,0.15); border: 2px solid #e5e0d0; }
+.acts button svg { width: 22px; height: 22px; }
+.acts button.on { background: var(--d); color: var(--y); border-color: var(--d); }
+.acts button:disabled { opacity: 0.4; }
+.acts button.go { flex: 1.6; background: #2a9d48; color: #fff; border-color: #1f7a37; font-size: 15px; box-shadow: 0 3px 0 #186a2e; }
+#bdel.on { background: #e63946; color: #fff; border-color: #b71c2a; }
+#bspeed { font-size: 18px; justify-content: center; }
+#tstatus { text-align: center; font-weight: 800; font-size: 14px; margin-bottom: 6px; min-height: 18px; }
+/* Karten */
+#modal { position: fixed; inset: 0; background: rgba(20,24,32,0.35); display: flex; align-items: center; justify-content: center; padding: calc(var(--safe-t) + 12px) 12px calc(var(--safe-b) + 12px); }
+#card { width: min(100%, 420px); max-height: 100%; overflow-y: auto; background: var(--card); border-radius: 18px; padding: 16px; box-shadow: 0 10px 0 rgba(0,0,0,0.2); border: 3px solid var(--d); }
+#modal:has(#card.bottom) { align-items: flex-end; background: rgba(20,24,32,0.08); }
+#card.bottom { max-height: 54vh; }
+.ihead h2 { margin: 2px 0 6px; font-size: 25px; font-weight: 900; }
+.inr { font-weight: 800; color: var(--o); font-size: 14px; }
+.idesc { font-size: 16px; margin: 0 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.chip { background: var(--d); color: #fff; font-size: 12.5px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+.ibudget { font-size: 14px; margin: 6px 0; }
+.tut { font-size: 14px; padding-left: 18px; margin: 8px 0; background: #fff3c4; border-radius: 10px; padding: 8px 8px 8px 26px; }
+.tut li { margin: 3px 0; }
+.btns { display: flex; gap: 8px; margin-top: 12px; }
+.btns button { flex: 1; }
+.btns.small button { font-size: 14px; padding: 9px; box-shadow: 0 3px 0 rgba(0,0,0,0.15); background: #f1ecdc; }
+.rhead { text-align: center; }
+.rhead h2 { margin: 0; font-size: 30px; font-weight: 900; }
+.rhead.win h2 { color: #1f8a3b; } .rhead.fail h2 { color: #d62828; }
+.rhead p { margin: 4px 0 6px; font-weight: 600; }
+.bigstars { font-size: 40px; line-height: 1.1; }
+.explain { background: #fff; border: 2px dashed #c9c2ad; border-radius: 12px; padding: 8px 10px; font-size: 14px; }
+.explain p { margin: 4px 0; } .explain .et { font-weight: 800; }
+.hl { display: inline-block; background: #ff28c8; color: #fff; font-weight: 800; font-size: 11px; padding: 1px 6px; border-radius: 6px; }
+.tog { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600; margin-top: 8px; }
+.tog input { width: 20px; height: 20px; }
+#toast { position: fixed; left: 50%; top: calc(var(--safe-t) + 110px); transform: translate(-50%, -20px); background: var(--d); color: #fff; padding: 9px 14px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; z-index: 20; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+@media (orientation: landscape) and (max-height: 500px) { .tag { margin: 10px 0; } #title { padding-top: 12px; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="title" class="screen">
+  <div class="logo"><div class="stripes"></div><h1>BEBEN<span>BAU</span></h1><div class="stripes"></div></div>
+  <p class="tag">Bau es so, dass es hält.<br>Lkw, Sturm und Erdbeben warten schon.</p>
+  <div class="tbtns"><button id="play" class="big">Spielen</button><button id="titlesound">Ton an</button></div>
+  <p class="foot">Prototyp · Lastfälle: Vegapunk · Bau: Franky</p>
+</div>
+
+<div id="levels" class="screen hidden">
+  <div class="lhead"><button id="lback" class="icon" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>Baustellen</h2><span id="startotal"></span></div>
+  <div id="levelgrid"></div>
+  <button id="unlockall" class="linkbtn"></button>
+</div>
+
+<div id="hud" class="hidden">
+  <div class="top">
+    <button id="bback" class="icon" aria-label="Levelauswahl"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="tmid"><div id="ltitle"></div><div class="bwrap"><div id="budgetbar"></div><span id="budget"></span></div></div>
+    <button id="binfo" class="icon" aria-label="Info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 11v6M12 7.2v.1" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg></button>
+    <button id="bsound" class="icon" aria-label="Ton"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="x" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </div>
+  <div id="loadchip"></div>
+  <div id="warn"></div>
+</div>
+
+<div id="tools" class="hidden">
+  <div id="matinfo"></div>
+  <div id="mats"></div>
+  <div class="acts">
+    <button id="bundo"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -3)"/></svg>Zurück</button>
+    <button id="bdel"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>Löschen</button>
+    <button id="bstat"><svg viewBox="0 0 24 24"><path d="M3 19 12 5l9 14zM12 5v14M7.5 12h9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>Statik</button>
+    <button id="bfit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Ansicht</button>
+    <button id="btest" class="go"><svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z" fill="currentColor"/></svg>Test</button>
+  </div>
+</div>
+
+<div id="testbar" class="hidden">
+  <div id="tstatus"></div>
+  <div class="acts">
+    <button id="bstop"><svg viewBox="0 0 24 24"><path d="M14.5 4.5 19.5 9.5 9 20H4v-5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>Bauen</button>
+    <button id="bspeed">×1</button>
+    <button id="tforces"><svg viewBox="0 0 24 24"><path d="M4 12h13M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Kräfte</button>
+  </div>
+</div>
+
+<div id="modal" class="hidden"><div id="card"></div></div>
+<div id="toast"></div>
+<script>window.LEVELDATA = {"hinweis": "Spielwerte, an reale Größenordnungen angelehnt, aber für Spielbarkeit vereinfacht. Keine Bemessungswerte. Erdbebenlast als horizontale Ersatzkraft F = pga_g * Masse * g, pulsierend mit frequenz_hz.", "materialien": [{"name": "Holz", "max_zug_kN": 60, "max_druck_kN": 45, "gewicht_kg_pro_m": 8, "kosten_pro_m": 10}, {"name": "Stahlseil", "max_zug_kN": 120, "max_druck_kN": 0, "gewicht_kg_pro_m": 3, "kosten_pro_m": 15}, {"name": "Stahlprofil", "max_zug_kN": 250, "max_druck_kN": 200, "gewicht_kg_pro_m": 25, "kosten_pro_m": 40}, {"name": "Stahlbeton", "max_zug_kN": 30, "max_druck_kN": 400, "gewicht_kg_pro_m": 120, "kosten_pro_m": 30}, {"name": "Mauerwerk", "max_zug_kN": 5, "max_druck_kN": 150, "gewicht_kg_pro_m": 90, "kosten_pro_m": 12}], "levels": [{"nr": 1, "name": "Feldweg", "beschreibung": "Ein Pkw muss über den Graben.", "spannweite_m": 6, "budget": 400, "ankerpunkte": [[0, 0], [6, 0]], "last": {"typ": "lkw", "gewicht_t": 1.5, "geschwindigkeit_kmh": 20}}, {"name": "Baustellenzufahrt", "nr": 2, "beschreibung": "Der Betonmischer kommt. Mittelstütze erlaubt.", "spannweite_m": 10, "budget": 900, "ankerpunkte": [[0, 0], [5, -3], [10, 0]], "last": {"typ": "lkw", "gewicht_t": 12, "geschwindigkeit_kmh": 15}}, {"nr": 3, "name": "Steg an der Alster", "beschreibung": "Fußgängersteg im Herbststurm. Leicht bauen, gut aussteifen.", "spannweite_m": 14, "budget": 900, "ankerpunkte": [[0, 0], [14, 0], [0, 4], [14, 4]], "last": {"typ": "sturm", "wind_kmh": 100, "boen_kmh": 130, "dauer_s": 20}}, {"nr": 4, "name": "Tiefgaragenrampe", "beschreibung": "Lkw mit 20 % Steigung, Bremskraft beachten.", "spannweite_m": 12, "budget": 1400, "ankerpunkte": [[0, 0], [12, -2.4], [6, -4]], "last": {"typ": "lkw", "gewicht_t": 18, "geschwindigkeit_kmh": 10, "bremsen": true}}, {"nr": 5, "name": "Erstes Beben", "beschreibung": "Ein dreistöckiger Turm muss ein leichtes Beben überstehen.", "spannweite_m": 6, "budget": 1200, "ankerpunkte": [[0, 0], [3, 0], [6, 0]], "last": {"typ": "erdbeben", "pga_g": 0.1, "dauer_s": 10, "frequenz_hz": 2, "turmhoehe_m": 9, "nutzlast_t": 3}}, {"nr": 6, "name": "Elbbrücke light", "beschreibung": "Große Spannweite, nur zwei Pfeiler. Seile helfen.", "spannweite_m": 30, "budget": 3000, "ankerpunkte": [[0, 0], [30, 0], [10, -6], [20, -6], [0, 8], [30, 8]], "last": {"typ": "lkw", "gewicht_t": 26, "geschwindigkeit_kmh": 40}}, {"nr": 7, "name": "Hochhaus im Sturm", "beschreibung": "Schmaler Turm, Wind von der Seite. Diagonalen sind Pflicht.", "spannweite_m": 8, "budget": 2500, "ankerpunkte": [[0, 0], [8, 0]], "last": {"typ": "sturm", "wind_kmh": 140, "boen_kmh": 180, "dauer_s": 30, "turmhoehe_m": 24}}, {"nr": 8, "name": "Mittleres Beben", "beschreibung": "Mehr Masse oben macht es schlimmer. Leicht und steif bauen.", "spannweite_m": 10, "budget": 2200, "ankerpunkte": [[0, 0], [5, 0], [10, 0]], "last": {"typ": "erdbeben", "pga_g": 0.3, "dauer_s": 15, "frequenz_hz": 1.5, "turmhoehe_m": 15, "nutzlast_t": 8}}, {"nr": 9, "name": "Brücke über der Verwerfung", "beschreibung": "Lkw fährt drüber, während die Erde bebt.", "spannweite_m": 20, "budget": 3200, "ankerpunkte": [[0, 0], [20, 0], [10, -5]], "last": {"typ": "erdbeben", "pga_g": 0.25, "dauer_s": 12, "frequenz_hz": 2.5, "zusatz_lkw_t": 12}}, {"nr": 10, "name": "Das große Beben", "beschreibung": "Endlevel: Turm mit 30 m Höhe, starkes Beben.", "spannweite_m": 12, "budget": 5000, "ankerpunkte": [[0, 0], [4, 0], [8, 0], [12, 0]], "last": {"typ": "erdbeben", "pga_g": 0.5, "dauer_s": 20, "frequenz_hz": 1.2, "turmhoehe_m": 30, "nutzlast_t": 15}}]};</script>
+<script>/* Bebenbau – Kern: Konfiguration, Materialien, Hilfsfunktionen */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+const G = 9.81;
+const CFG = {
+  dt: 1 / 60,
+  substeps: 40,
+  stiff: 120,          // Dehnsteifigkeit EA = stiff * max. Tragkraft  (=> ca. 0,8 % Dehnung beim Versagen)
+  strength: 1.0,       // globaler Faktor auf alle Tragkräfte
+  lRef: 6,             // Knicklänge: Druckstäbe länger als lRef verlieren Tragkraft mit (lRef/L)^2
+  windDepthBridge: 3,  // m Breite, die bei Brücken Wind fängt (Fahrbahnbreite)
+  windDepthTower: 0.25,  // m Breite pro Stab bei Türmen (Planen, Fassade)
+  quakeQ: 1.0,         // Verhaltensbeiwert q (Duktilität, vgl. EN 1998): Ersatzkraft F = pga·m·g / q
+  damping: 1.0,        // 1/s Geschwindigkeitsdämpfung (~5 % Bauwerksdämpfung)
+  jointMass: 5,        // kg pro Knoten (Knotenblech)
+  gravRamp: 0.6,       // s Hochlaufzeit der Schwerkraft
+  loadStart: 0.8,      // s bis Erdbeben/Wind einsetzen
+  maxTime: 90,
+  sagLimitMin: 0.6,
+};
+const STYLE = {
+  'holz': { color: '#b4783a', dark: '#7a4a1e', w: 0.22, icon: 'holz' },
+  'stahlseil': { color: '#2f343a', dark: '#111', w: 0.07, icon: 'seil' },
+  'stahlprofil': { color: '#3f6c99', dark: '#22415f', w: 0.2, icon: 'stahl' },
+  'stahlbeton': { color: '#a3a39d', dark: '#6c6c66', w: 0.3, icon: 'beton' },
+  'mauerwerk': { color: '#b8553c', dark: '#7b2f1f', w: 0.3, icon: 'mauer' },
+};
+const FALLBACK_COLORS = ['#8a6', '#a68', '#68a', '#aa6', '#6aa'];
+
+function num(v, d) { const n = Number(v); return (v === null || v === undefined || v === '' || !isFinite(n)) ? d : n; }
+
+function prepMaterials(raw) {
+  raw = Array.isArray(raw) && raw.length ? raw : [{ name: 'Holz', max_zug_kN: 60, max_druck_kN: 45, gewicht_kg_pro_m: 8, kosten_pro_m: 10 }];
+  return raw.map((m, i) => {
+    const name = String(m.name || ('Material ' + (i + 1)));
+    const st = STYLE[name.toLowerCase()] || { color: FALLBACK_COLORS[i % 5], dark: '#333', w: 0.2, icon: 'stahl' };
+    const zug = Math.max(0, num(m.max_zug_kN, 50)) * 1000;
+    const druck = Math.max(0, num(m.max_druck_kN, 50)) * 1000;
+    return {
+      name, zug, druck, kgpm: Math.max(0.5, num(m.gewicht_kg_pro_m, 10)), cost: Math.max(0, num(m.kosten_pro_m, 10)),
+      color: st.color, dark: st.dark, width: st.w, icon: st.icon, cable: druck <= 0,
+    };
+  });
+}
+
+
+Object.assign(BB, { G, CFG, STYLE, num, prepMaterials });
+if (typeof module !== 'undefined' && module.exports) module.exports = BB;
+})();
+
+/* Bebenbau – Level-Aufbereitung (Lastfälle aus lastfaelle.json), Raster, Validierung, Kosten */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+const { G, CFG, num } = BB;
+function vehicleSpec(t) {
+  if (t <= 3.5) return { kind: 'pkw', length: 4.2, axles: [0.7, 3.3], name: 'Pkw' };
+  if (t <= 16) return { kind: 'mischer', length: 7.5, axles: [0.9, 4.8, 6.2], name: 'Betonmischer' };
+  return { kind: 'lkw', length: 10, axles: [0.9, 2.2, 7.5, 8.8], name: 'Lkw' };
+}
+
+function prepLevel(raw, idx) {
+  const L = raw.last || {};
+  const typ = String(L.typ || '').toLowerCase();
+  let anchors = (Array.isArray(raw.ankerpunkte) && raw.ankerpunkte.length ? raw.ankerpunkte : [[0, 0], [num(raw.spannweite_m, 8), 0]])
+    .map(p => ({ x: num(Array.isArray(p) ? p[0] : p.x, 0), y: num(Array.isArray(p) ? p[1] : p.y, 0) }));
+  // doppelte Anker entfernen
+  anchors = anchors.filter((a, i) => anchors.findIndex(b => Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6) === i);
+  const xs = anchors.map(a => a.x), ys = anchors.map(a => a.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const span = num(raw.spannweite_m, maxX - minX);
+  const H = num(L.turmhoehe_m, num(raw.turmhoehe_m, 0));
+  const kind = H > 0 ? 'tower' : 'bridge';
+  const lv = {
+    nr: num(raw.nr, idx + 1), name: String(raw.name || ('Level ' + (idx + 1))), beschreibung: String(raw.beschreibung || ''),
+    budget: num(raw.budget, 1000), span, anchors, kind, H, raw,
+    quake: null, wind: null, truck: null, walkers: null, payload: 0,
+  };
+  if (typ === 'erdbeben' || L.pga_g !== undefined) {
+    lv.quake = { pga: num(L.pga_g, 0.2), f: num(L.frequenz_hz, 1.5), dur: num(L.dauer_s, 10) };
+  }
+  if (typ === 'sturm' || L.wind_kmh !== undefined) {
+    const v = num(L.wind_kmh, 90);
+    lv.wind = { v: v / 3.6, gust: num(L.boen_kmh, v * 1.3) / 3.6, dur: num(L.dauer_s, 15) };
+  }
+  const truckT = typ === 'lkw' ? num(L.gewicht_t, 3) : num(L.zusatz_lkw_t, 0);
+  if (truckT > 0) lv.truck = { t: truckT, kmh: num(L.geschwindigkeit_kmh, 15), brake: !!L.bremsen, spec: vehicleSpec(truckT) };
+  lv.payload = num(L.nutzlast_t, 0) * 1000;
+  if (kind === 'bridge') {
+    const leftC = anchors.filter(a => Math.abs(a.x - minX) < 1e-6).sort((a, b) => Math.abs(a.y) - Math.abs(b.y));
+    const rightC = anchors.filter(a => Math.abs(a.x - maxX) < 1e-6).sort((a, b) => Math.abs(a.y) - Math.abs(b.y));
+    lv.roadA = leftC[0]; lv.roadB = rightC[0];
+    if (!lv.truck) lv.walkers = { n: 4, kg: 90, speed: 1.3 };
+  }
+  const width = maxX - minX;
+  const height = kind === 'tower' ? H : Math.max(...ys) - Math.min(...ys);
+  lv.grid = Math.max(width, height) <= 16 ? 1 : 2;
+  const g = lv.grid;
+  if (kind === 'bridge') {
+    const ry = [lv.roadA.y, lv.roadB.y];
+    const extra = Math.max(2, Math.min(6, lv.span * 0.3));
+    lv.bx0 = lv.roadA.x; lv.bx1 = lv.roadB.x;
+    lv.by0 = Math.floor(Math.min(Math.min(...ys), Math.min(...ry) - extra) / g) * g;
+    lv.by1 = Math.ceil(Math.max(Math.max(...ys), Math.max(...ry) + extra) / g) * g;
+    lv.gapBottom = Math.min(lv.by0, Math.min(...ys)) - 1.5;
+    lv.sagLimit = Math.max(CFG.sagLimitMin, lv.span / 12);
+  } else {
+    lv.bx0 = Math.floor((minX - g) / g) * g; lv.bx1 = Math.ceil((maxX + g) / g) * g;
+    lv.by0 = 0; lv.by1 = Math.ceil(H / g) * g + g;
+    lv.gapBottom = 0;
+  }
+  lv.maxLen = g * 7;
+  lv.snaps = snapPoints(lv);
+  return lv;
+}
+
+function onRoad(lv, x, y) {
+  if (!lv.roadA) return false;
+  const a = lv.roadA, b = lv.roadB;
+  if (x < a.x - 1e-6 || x > b.x + 1e-6) return false;
+  const yy = a.y + (b.y - a.y) * (x - a.x) / ((b.x - a.x) || 1);
+  return Math.abs(yy - y) < 1e-3;
+}
+function roadY(lv, x) { const a = lv.roadA, b = lv.roadB; return a.y + (b.y - a.y) * (x - a.x) / ((b.x - a.x) || 1); }
+function groundAt(lv, x) {
+  if (lv.kind === 'tower') return 0;
+  if (x <= lv.roadA.x) return lv.roadA.y;
+  if (x >= lv.roadB.x) return lv.roadB.y;
+  return lv.gapBottom;
+}
+
+function snapPoints(lv) {
+  const g = lv.grid, pts = [];
+  const key = (x, y) => Math.round(x * 1000) + ',' + Math.round(y * 1000);
+  const seen = new Set();
+  const add = (x, y, road) => { const k = key(x, y); if (seen.has(k)) return; seen.add(k); pts.push({ x, y, road: !!road }); };
+  lv.anchors.forEach(a => add(a.x, a.y, onRoad(lv, a.x, a.y)));
+  if (lv.roadA) {
+    for (let x = Math.ceil(lv.roadA.x / g) * g; x <= lv.roadB.x + 1e-9; x += g) add(x, roadY(lv, x), true);
+  }
+  for (let x = Math.ceil(lv.bx0 / g) * g; x <= lv.bx1 + 1e-9; x += g)
+    for (let y = lv.by0; y <= lv.by1 + 1e-9; y += g) {
+      if (lv.kind === 'bridge' && lv.roadA && Math.abs(lv.roadA.y - lv.roadB.y) > 1e-6) {
+        // Rampe: Rasterpunkte zu nah an der Fahrbahn weglassen
+        const ry = roadY(lv, x);
+        if (Math.abs(ry - y) < g * 0.35 && Math.abs(ry - y) > 1e-3) continue;
+      }
+      add(x, y, onRoad(lv, x, y));
+    }
+  return pts;
+}
+
+function designCost(design, mats) {
+  let c = 0;
+  for (const [a, b, m] of design.members) {
+    const p = design.nodes[a], q = design.nodes[b];
+    c += Math.hypot(p[0] - q[0], p[1] - q[1]) * (mats[m] ? mats[m].cost : 0);
+  }
+  return Math.round(c);
+}
+function stars(cost, budget) { if (cost > budget) return 0; if (cost <= budget * 0.7) return 3; if (cost <= budget * 0.85) return 2; return 1; }
+
+function payloadNodeIdx(lv, design) {
+  const out = [];
+  design.nodes.forEach((p, i) => { if (p[1] >= lv.H - 0.01) out.push(i); });
+  return out;
+}
+
+function validate(lv, design) {
+  if (!design.members.length) return 'Bau zuerst ein paar Stäbe!';
+  if (lv.kind === 'tower') {
+    const used = new Set(); design.members.forEach(m => { used.add(m[0]); used.add(m[1]); });
+    if (!payloadNodeIdx(lv, design).some(i => used.has(i))) return 'Der Turm muss bis zur Zielhöhe von ' + fmt(lv.H) + ' m reichen.';
+  } else {
+    // Fahrbahn durchgehend?
+    const segs = design.members.filter(m => onRoad(lv, ...design.nodes[m[0]]) && onRoad(lv, ...design.nodes[m[1]]))
+      .map(m => [Math.min(design.nodes[m[0]][0], design.nodes[m[1]][0]), Math.max(design.nodes[m[0]][0], design.nodes[m[1]][0])]).sort((a, b) => a[0] - b[0]);
+    let reach = lv.roadA.x;
+    for (const s of segs) if (s[0] <= reach + 1e-6) reach = Math.max(reach, s[1]);
+    if (reach < lv.roadB.x - 1e-6) return 'Die Fahrbahn (gestrichelte Linie) muss durchgehend gebaut sein.';
+  }
+  return null;
+}
+function fmt(n) { return String(Math.round(n * 10) / 10).replace('.', ','); }
+
+
+Object.assign(BB, { vehicleSpec, prepLevel, onRoad, roadY, groundAt, snapPoints, designCost, stars, payloadNodeIdx, validate, fmt });
+if (typeof module !== 'undefined' && module.exports) module.exports = BB;
+})();
+
+/* Bebenbau – Physik: 2D-Fachwerk mit XPBD (kleine Teilschritte), Stabkräfte, Auflagerkräfte, Versagen */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+const { G, CFG, payloadNodeIdx, onRoad, roadY, groundAt } = BB;
+// deterministisches Rauschen
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+
+class Sim {
+  constructor(lv, design, mats, opts) {
+    opts = opts || {};
+    this.lv = lv; this.mats = mats; this.unbreakable = !!opts.unbreakable;
+    this.t = 0; this.done = false; this.result = null; this.events = [];
+    this.nA = lv.anchors.length;
+    const rand = rng(opts.seed || 7);
+    this.nodes = design.nodes.map((p, i) => ({ x: p[0], y: p[1], px: p[0], py: p[1], bx: p[0], by: p[1], vx: 0, vy: 0, fixed: i < this.nA, m0: CFG.jointMass, extra: 0, fx: 0, fy: 0, deg: 0 }));
+    this.members = [];
+    design.members.forEach(([a, b, mi], k) => {
+      const A = this.nodes[a], B = this.nodes[b], mat = mats[mi];
+      if (!A || !B || !mat || a === b) return;
+      const L0 = Math.hypot(A.x - B.x, A.y - B.y); if (L0 < 1e-6) return;
+      const mass = mat.kgpm * L0;
+      A.m0 += mass / 2; B.m0 += mass / 2; A.deg++; B.deg++;
+      const EA = CFG.stiff * Math.max(mat.zug, mat.druck, 1000);
+      this.members.push({
+        id: k + 1, a, b, mi, mat, L0, peakRatio: 0, peakMode: '', mass, alpha: L0 / EA, broken: false, f: 0, acc: 0, ratio: 0, peakT: 0, peakC: 0,
+        capT: mat.zug * CFG.strength, capC: mat.druck * CFG.strength * Math.min(1, (CFG.lRef / L0) ** 2),
+        road: onRoad(lv, A.x, A.y) && onRoad(lv, B.x, B.y),
+      });
+    });
+    this.failures = [];   // Reihenfolge des Versagens (für die Erklärung)
+    this.reactions = this.nodes.slice(0, this.nA).map((n, i) => ({ i, x: n.x, y: n.y, rx: 0, ry: 0, peak: 0 }));
+    this.roadMembers = this.members.filter(m => m.road);
+    // Nutzlast (Turm)
+    this.payloadNodes = [];
+    if (lv.kind === 'tower') {
+      this.payloadNodes = payloadNodeIdx(lv, design).filter(i => this.nodes[i].deg > 0 || this.nodes[i].fixed);
+      const per = this.payloadNodes.length ? lv.payload / this.payloadNodes.length : 0;
+      this.payloadNodes.forEach(i => { this.nodes[i].payload = per; });
+    }
+    // Fahrzeuge
+    this.vehicles = [];
+    if (lv.truck) {
+      const sp = lv.truck.spec, m = lv.truck.t * 1000;
+      this.vehicles.push({ kind: sp.kind, name: sp.name, mass: m, axles: sp.axles, length: sp.length, v0: lv.truck.kmh / 3.6, v: lv.truck.kmh / 3.6,
+        s: lv.roadA.x - sp.length - 1.5, start: lv.quake ? 2.5 : 1.0, brake: lv.truck.brake ? 'pending' : null, holdT: 0, acc: 0,
+        state: 'wait', ys: sp.axles.map(() => lv.roadA.y), fallT: 0, rot: 0, vy: 0, y: lv.roadA.y, endX: lv.roadB.x + 1.5 });
+    }
+    if (lv.walkers) {
+      const w = lv.walkers;
+      for (let k = 0; k < w.n; k++) this.vehicles.push({ kind: 'worker', name: 'Bauarbeiter', mass: w.kg, axles: [0], length: 0.5, v0: w.speed, v: w.speed,
+        s: lv.roadA.x - 1 - k * 1.4, start: 1.0, brake: null, holdT: 0, acc: 0, state: 'wait', ys: [lv.roadA.y], fallT: 0, rot: 0, vy: 0, y: lv.roadA.y, endX: lv.roadB.x + 1 });
+    }
+    // Böen vorberechnen
+    this.gusts = [];
+    if (lv.wind) { let tt = CFG.loadStart + 1.5 + rand() * 1.5; while (tt < CFG.loadStart + lv.wind.dur) { this.gusts.push({ t: tt, d: 1.2 + rand() * 1.3 }); tt += 2.2 + rand() * 2.8; } }
+    this.phase = rand() * 6.28;
+    this.endTime = CFG.loadStart + Math.max(lv.quake ? lv.quake.dur : 0, lv.wind ? lv.wind.dur : 0) + 0.8;
+    this.windNow = 0; this.quakeAcc = 0; this.quakeEnv = 0; this.brokenCount = 0;
+  }
+  quakeA(t) {
+    const q = this.lv.quake; if (!q) return 0;
+    const tt = t - CFG.loadStart; if (tt < 0 || tt > q.dur) return 0;
+    const env = Math.min(1, tt / 1.0, (q.dur - tt) / 1.5);
+    const w = 2 * Math.PI * q.f;
+    const noise = 0.5 * Math.sin(2 * Math.PI * 3.7 * tt + 1 + this.phase) + 0.3 * Math.sin(2 * Math.PI * 5.3 * tt + 2) + 0.2 * Math.sin(2 * Math.PI * 0.6 * tt);
+    this.quakeEnv = env;
+    return q.pga * G / CFG.quakeQ * env * (Math.sin(w * tt) + 0.15 * noise);
+  }
+  windV(t) {
+    const wd = this.lv.wind; if (!wd) return 0;
+    const tt = t - CFG.loadStart; if (tt < 0 || tt > wd.dur) return 0;
+    const env = Math.min(1, tt / 2, (wd.dur - tt) / 1.5);
+    let gst = 0;
+    for (const g of this.gusts) { const x = (t - g.t) / g.d; if (x > 0 && x < 1) gst = Math.max(gst, Math.sin(Math.PI * x) ** 2); }
+    const turb = 0.04 * Math.sin(7.1 * tt + this.phase) + 0.03 * Math.sin(12.7 * tt);
+    return env * (wd.v + (wd.gust - wd.v) * gst) * (1 + turb);
+  }
+  supportAt(x) {
+    const lv = this.lv;
+    if (x < lv.roadA.x || x > lv.roadB.x) return { ground: true, y: groundAt(lv, x) };
+    for (const m of this.roadMembers) {
+      if (m.broken) continue;
+      const A = this.nodes[m.a], B = this.nodes[m.b];
+      let xa = A.x, xb = B.x, ya = A.y, yb = B.y, ia = m.a, ib = m.b;
+      if (xa > xb) { [xa, xb] = [xb, xa]; [ya, yb] = [yb, ya]; [ia, ib] = [ib, ia]; }
+      if (x >= xa - 1e-9 && x <= xb + 1e-9) {
+        const w = (x - xa) / ((xb - xa) || 1);
+        return { ground: false, y: ya + (yb - ya) * w, ia, ib, w, m };
+      }
+    }
+    return null;
+  }
+  step() {
+    const lv = this.lv, N = CFG.substeps, h = CFG.dt / N, nodes = this.nodes;
+    this.events.length = 0;
+    for (const m of this.members) m.acc = 0;
+    for (let s = 0; s < N; s++) {
+      const t = this.t;
+      for (const n of nodes) { n.extra = n.payload || 0; n.fx = 0; n.fy = 0; }
+      // Fahrzeuge
+      for (const v of this.vehicles) this.updVehicle(v, h, t);
+      const gr = Math.min(1, t / CFG.gravRamp);
+      const qa = this.quakeA(t); this.quakeAcc = qa;
+      // Wind
+      const W = this.windV(t); this.windNow = W;
+      if (W > 0) {
+        const q = 0.5 * 1.25 * W * W;
+        const tower = lv.kind === 'tower';
+        const depth = tower ? CFG.windDepthTower : CFG.windDepthBridge;
+        const lift = tower ? 0 : (0.25 + 0.55 * Math.sin(2 * Math.PI * 0.45 * t + this.phase));
+        for (const m of this.members) {
+          if (m.broken) continue;
+          const A = nodes[m.a], B = nodes[m.b];
+          const fx = q * Math.abs(A.y - B.y) * depth * 0.5;
+          const fy = q * Math.abs(A.x - B.x) * depth * 0.5 * lift;
+          A.fx += fx; B.fx += fx; A.fy += fy; B.fy += fy;
+        }
+      }
+      // Integration
+      const damp = 1 - CFG.damping * h;
+      for (const n of nodes) {
+        if (n.fixed) continue;
+        const m = n.m0 + n.extra;
+        n.vx = (n.vx + h * (n.fx / m + qa)) * damp;
+        n.vy = (n.vy + h * (n.fy / m - G * gr + 0.15 * qa * Math.sin(this.t * 9.3))) * damp;
+        n.px = n.x; n.py = n.y;
+        n.x += h * n.vx; n.y += h * n.vy;
+      }
+      // Stäbe
+      const ih2 = 1 / (h * h);
+      for (const m of this.members) {
+        if (m.broken) continue;
+        const A = nodes[m.a], B = nodes[m.b];
+        let dx = B.x - A.x, dy = B.y - A.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1e-9;
+        const C = d - m.L0;
+        if (C < 0 && m.mat.cable) continue;
+        const wa = A.fixed ? 0 : 1 / (A.m0 + A.extra), wb = B.fixed ? 0 : 1 / (B.m0 + B.extra);
+        const at = m.alpha * ih2;
+        const dl = -C / (wa + wb + at);
+        dx /= d; dy /= d;
+        A.x -= wa * dx * dl; A.y -= wa * dy * dl;
+        B.x += wb * dx * dl; B.y += wb * dy * dl;
+        m.acc += -dl * ih2;
+      }
+      // Boden
+      for (const n of nodes) {
+        if (n.fixed) continue;
+        const gy = groundAt(lv, n.x);
+        if (n.y < gy) { n.y = gy; n.x = n.px + (n.x - n.px) * 0.3; }
+        n.vx = (n.x - n.px) / h; n.vy = (n.y - n.py) / h;
+      }
+      this.t += h;
+    }
+    // Kräfte auswerten
+    for (const m of this.members) {
+      if (m.broken) continue;
+      const f = m.acc / N; m.f = f;
+      if (f > m.peakT) m.peakT = f; if (-f > m.peakC) m.peakC = -f;
+      m.ratio = f >= 0 ? (m.capT > 0 ? f / m.capT : 9) : (m.capC > 0 ? -f / m.capC : (m.mat.cable ? 0 : 9));
+      if (m.ratio > m.peakRatio) { m.peakRatio = m.ratio; m.peakMode = f >= 0 ? 'zug' : 'druck'; m.peakF = f; }
+      if (m.ratio > 1 && !this.unbreakable) this.breakMember(m, f >= 0 ? 'zug' : 'druck');
+    }
+    this.calcReactions();
+    this.checkEnd();
+    return this.events;
+  }
+  // Auflagerkräfte: Summe der Stabkräfte, die auf jeden Ankerpunkt wirken (mit umgekehrtem Vorzeichen)
+  calcReactions() {
+    for (const r of this.reactions) { r.rx = 0; r.ry = 0; }
+    for (const m of this.members) {
+      if (m.broken) continue;
+      const A = this.nodes[m.a], B = this.nodes[m.b];
+      if (!A.fixed && !B.fixed) continue;
+      const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 1;
+      // Zugkraft f zieht A Richtung B und B Richtung A
+      if (A.fixed) { const r = this.reactions[m.a]; r.rx -= m.f * dx / d; r.ry -= m.f * dy / d; }
+      if (B.fixed) { const r = this.reactions[m.b]; r.rx += m.f * dx / d; r.ry += m.f * dy / d; }
+    }
+    for (const r of this.reactions) { const v = Math.hypot(r.rx, r.ry); if (v > r.peak) r.peak = v; }
+  }
+  breakMember(m, mode) {
+    m.broken = true; this.brokenCount++;
+    const cap = mode === 'zug' ? m.capT : m.capC;
+    this.failures.push({ id: m.id, mode, f: m.f, cap, capFull: mode === 'zug' ? m.capT : m.mat.druck * CFG.strength, buckled: mode === 'druck' && m.capC < m.mat.druck * CFG.strength - 1, L0: m.L0, mat: m.mat, t: this.t });
+    const A = this.nodes[m.a], B = this.nodes[m.b];
+    for (const n of [A, B]) { n.m0 = Math.max(CFG.jointMass, n.m0 - m.mass / 2); n.deg--; }
+    this.events.push({ type: 'break', mode, ax: A.x, ay: A.y, bx: B.x, by: B.y, mat: m.mat, vx: (A.vx + B.vx) / 2, vy: (A.vy + B.vy) / 2 });
+  }
+  updVehicle(v, h, t) {
+    const lv = this.lv;
+    if (v.state === 'wait') { if (t >= v.start) v.state = 'drive'; else { v.ys = v.axles.map(() => groundAt(lv, v.s)); return; } }
+    if (v.state === 'fall') {
+      v.vy -= G * h; v.y += v.vy * h; v.s += v.v * h * 0.6; v.rot += h * (v.kind === 'worker' ? 4 : 0.9);
+      v.fallT += h; if (v.y < lv.gapBottom + 0.5) { v.y = lv.gapBottom + 0.5; v.vy = 0; v.v = 0; }
+      return;
+    }
+    if (v.state === 'done') return;
+    // Bremsen
+    let a = 0;
+    if (v.brake) {
+      const mid = (lv.roadA.x + lv.roadB.x) / 2, center = v.s + v.length / 2;
+      if (v.brake === 'pending' && center >= mid - v.v * v.v / (2 * 0.5 * G)) v.brake = 'braking';
+      if (v.brake === 'braking') { a = -0.5 * G; if (v.v + a * h <= 0) { v.v = 0; a = 0; v.brake = 'hold'; v.holdT = 0; } }
+      else if (v.brake === 'hold') { v.holdT += h; if (v.holdT > 1.5) v.brake = 'go'; }
+      else if (v.brake === 'go') { a = 0.25 * G; if (v.v + a * h >= v.v0) { a = 0; v.v = v.v0; v.brake = 'done'; } }
+    }
+    v.v += a * h; v.acc = a; v.s += v.v * h;
+    if (v.s > v.endX) { v.state = 'done'; return; }
+    const mAx = v.mass / v.axles.length;
+    const ys = [];
+    for (let k = 0; k < v.axles.length; k++) {
+      const x = v.s + v.axles[k];
+      const sp = this.supportAt(x);
+      if (!sp) { this.fall(v, 'Die Fahrbahn ist gebrochen'); return; }
+      if (!sp.ground && sp.y < roadY(lv, x) - lv.sagLimit) { this.fall(v, 'Die Fahrbahn hängt zu weit durch'); return; }
+      ys.push(sp.y);
+      if (!sp.ground) {
+        const A = this.nodes[sp.ia], B = this.nodes[sp.ib];
+        const fx = -mAx * a; // Bremskraft wirkt nach vorn auf die Fahrbahn
+        const wA = 1 - sp.w, wB = sp.w;
+        if (!A.fixed) { A.extra += mAx * wA; A.fx += fx * wA; }
+        if (!B.fixed) { B.extra += mAx * wB; B.fx += fx * wB; }
+        // Erdbeben wirkt über die Masse automatisch mit
+      }
+    }
+    v.ys = ys; v.y = ys.reduce((p, c) => p + c, 0) / ys.length;
+  }
+  fall(v, why) { v.state = 'fall'; v.vy = 0; v.y = v.ys.length ? v.ys.reduce((p, c) => p + c, 0) / v.ys.length : v.y; if (!this.failReason) this.failReason = (v.kind === 'worker' ? 'Die Bauarbeiter sind abgestürzt! ' : 'Der ' + v.name + ' ist abgestürzt! ') + why + '.'; }
+  checkEnd() {
+    if (this.done) return;
+    const lv = this.lv;
+    const fallen = this.vehicles.find(v => v.state === 'fall');
+    if (fallen && fallen.fallT > 1.4) return this.finish(false, this.failReason);
+    if (lv.kind === 'tower') {
+      const tol = Math.max(1, lv.H * 0.1);
+      for (const i of this.payloadNodes) {
+        const n = this.nodes[i];
+        if (n.y < lv.H - tol * 2.5 || (n.deg <= 0 && !n.fixed)) return this.finish(false, this.lv.payload > 0 ? 'Der Turm ist eingestürzt, die Nutzlast ist abgestürzt!' : 'Der Turm ist eingestürzt!');
+      }
+      if (!this.payloadNodes.length) return this.finish(false, 'Der Turm erreicht die Zielhöhe nicht.');
+      if (this.t >= this.endTime) {
+        const low = this.payloadNodes.some(i => this.nodes[i].y < lv.H - tol);
+        return this.finish(!low, low ? 'Der Turm hat sich zu stark verformt.' : '');
+      }
+    } else {
+      const allDone = this.vehicles.every(v => v.state === 'done');
+      if (allDone && this.t >= this.endTime) return this.finish(true, '');
+    }
+    if (this.t > CFG.maxTime) this.finish(false, 'Zeit abgelaufen.');
+  }
+  finish(win, reason) { this.done = true; this.result = { win, reason: reason || '' }; }
+}
+
+
+Object.assign(BB, { Sim, rng });
+if (typeof module !== 'undefined' && module.exports) module.exports = BB;
+})();
+
+/* Bebenbau – exakter statischer Fachwerklöser (Weggrößenverfahren / direct stiffness method).
+   Fachwerkstäbe (gelenkig) und Biegebalken (EA, EI), linear-elastisch, kleine Verformungen.
+   Lager: Festlager (x+y), Rollenlager (nur x oder nur y), Einspannung (x+y+Verdrehung r).
+   Eingabe in SI (m, N). Ausgabe: Stabkräfte N (Zug +, Druck −), Auflagerkräfte und -momente, Knotenverschiebungen. Bewegliche Systeme -> { ok:false, mechanism:true, message:'System ist beweglich' }.
+     solve({ nodes:[[x,y],...], members:[{a,b,EA}], supports:[{node, x:true, y:true}], loads:[{node, fx, fy}] }) */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+
+const MECH_MSG = 'System ist beweglich';
+function solve(model) {
+  // 3 Freiheitsgrade je Knoten: u, v, Verdrehung φ. Fachwerkstäbe (type 'bar') nutzen nur u, v;
+  // Biegebalken (type 'beam', EI > 0) koppeln auch φ (2D-Rahmenelement nach Euler-Bernoulli).
+  const nN = model.nodes.length, nd = 3 * nN;
+  const K = Array.from({ length: nd }, () => new Float64Array(nd));
+  const F = new Float64Array(nd);
+  const hasRot = new Uint8Array(nN);
+  const geo = model.members.map(m => {
+    const [xa, ya] = model.nodes[m.a], [xb, yb] = model.nodes[m.b];
+    const L = Math.hypot(xb - xa, yb - ya), c = (xb - xa) / L, s = (yb - ya) / L;
+    const EA = m.EA || 1e8, beam = m.type === 'beam' && m.EI > 0, EI = beam ? m.EI : 0;
+    if (beam) { hasRot[m.a] = 1; hasRot[m.b] = 1; }
+    // lokale Steifigkeitsmatrix [u1 v1 φ1 u2 v2 φ2]
+    const a = EA / L, b12 = 12 * EI / L ** 3, b6 = 6 * EI / L ** 2, b4 = 4 * EI / L, b2 = 2 * EI / L;
+    const kl = [
+      [a, 0, 0, -a, 0, 0], [0, b12, b6, 0, -b12, b6], [0, b6, b4, 0, -b6, b2],
+      [-a, 0, 0, a, 0, 0], [0, -b12, -b6, 0, b12, -b6], [0, b6, b2, 0, -b6, b4]];
+    const T = [[c, s, 0, 0, 0, 0], [-s, c, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, c, s, 0], [0, 0, 0, -s, c, 0], [0, 0, 0, 0, 0, 1]];
+    const dofs = [3 * m.a, 3 * m.a + 1, 3 * m.a + 2, 3 * m.b, 3 * m.b + 1, 3 * m.b + 2];
+    // K_global = T^T k T
+    const kT = kl.map(r => T[0].map((_, j) => r.reduce((acc, v, q) => acc + v * T[q][j], 0)));
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+      let v = 0; for (let q = 0; q < 6; q++) v += T[q][i] * kT[q][j];
+      K[dofs[i]][dofs[j]] += v;
+    }
+    return { L, c, s, kl, T, dofs, beam };
+  });
+  for (const l of model.loads || []) { F[3 * l.node] += l.fx || 0; F[3 * l.node + 1] += l.fy || 0; F[3 * l.node + 2] += l.m || 0; }
+  const fixed = new Uint8Array(nd);
+  for (const s of model.supports || []) { if (s.x) fixed[3 * s.node] = 1; if (s.y) fixed[3 * s.node + 1] = 1; if (s.r) fixed[3 * s.node + 2] = 1; }
+  const used = new Uint8Array(nN); model.members.forEach(m => { used[m.a] = 1; used[m.b] = 1; });
+  for (let i = 0; i < nN; i++) {
+    if (!used[i]) { fixed[3 * i] = 1; fixed[3 * i + 1] = 1; }
+    if (!hasRot[i]) fixed[3 * i + 2] = 1;   // reiner Gelenkknoten: Verdrehung spielt keine Rolle
+  }
+  const free = []; for (let i = 0; i < nd; i++) if (!fixed[i]) free.push(i);
+  const n = free.length;
+  const A = free.map(i => { const r = new Float64Array(n + 1); free.forEach((j, q) => { r[q] = K[i][j]; }); r[n] = F[i]; return r; });
+  const diag = free.map((i, q) => A[q][q]);
+  const mech = () => ({ ok: false, mechanism: true, message: MECH_MSG, hint: 'Dein Bauwerk klappt zusammen, weil eine Diagonale (ein Dreieck) oder ein Lager fehlt.' });
+  // Gauß-Elimination mit Spaltenpivotsuche; ein Pivot, der gegenüber der ursprünglichen Diagonale verschwindet, heißt: singulär = beweglich
+  for (let col = 0; col < n; col++) {
+    let p = col; for (let r = col + 1; r < n; r++) if (Math.abs(A[r][col]) > Math.abs(A[p][col])) p = r;
+    if (!(diag[col] > 0) || Math.abs(A[p][col]) < 1e-9 * diag[col]) return mech();
+    if (p !== col) { const t = A[p]; A[p] = A[col]; A[col] = t; }
+    for (let r = col + 1; r < n; r++) {
+      const f = A[r][col] / A[col][col]; if (!f) continue;
+      for (let c = col; c <= n; c++) A[r][c] -= f * A[col][c];
+    }
+  }
+  const u = new Float64Array(nd), x = new Float64Array(n);
+  for (let r = n - 1; r >= 0; r--) { let s = A[r][n]; for (let c = r + 1; c < n; c++) s -= A[r][c] * x[c]; x[r] = s / A[r][r]; }
+  if (!x.every(isFinite)) return mech();
+  free.forEach((i, q) => { u[i] = x[q]; });
+  // Schnittgrößen je Stab (lokal): N (Zug +), Querkraft, Momente an beiden Enden
+  const ends = geo.map(g => {
+    const ug = g.dofs.map(d => u[d]);
+    const ul = g.T.map(r => r.reduce((acc, v, q) => acc + v * ug[q], 0));
+    const fl = g.kl.map(r => r.reduce((acc, v, q) => acc + v * ul[q], 0));
+    return { N: fl[3], V1: fl[1], M1: fl[2], V2: fl[4], M2: fl[5] };
+  });
+  const forces = ends.map(e => e.N);
+  const reactions = (model.supports || []).map(s => {
+    const R = [0, 0, 0];
+    for (let d = 0; d < 3; d++) {
+      const i = 3 * s.node + d; if (!fixed[i] || (d === 2 && !s.r)) continue;
+      if ((d === 0 && !s.x) || (d === 1 && !s.y)) continue;
+      let v = -F[i]; for (let j = 0; j < nd; j++) v += K[i][j] * u[j];
+      R[d] = v;
+    }
+    return { node: s.node, rx: R[0], ry: R[1], m: R[2] };
+  });
+  return { ok: true, forces, ends, reactions, u };
+}
+
+/* Statische Ersatzrechnung für einen Spielentwurf:
+   Eigengewicht + Nutzlast, Fahrzeug in Feldmitte (Brücke), Ersatzlast Erdbeben F = pga·m·g und Böenwind als statische Last. */
+function analyzeDesign(lv, design, mats, opts) {
+  opts = opts || {};
+  const { G, CFG } = BB;
+  const nodes = design.nodes, nA = lv.anchors.length;
+  const mass = nodes.map(() => CFG.jointMass);
+  const members = [];
+  design.members.forEach(([a, b, mi], k) => {
+    const mat = mats[mi]; if (!mat || a === b) return;
+    const L = Math.hypot(nodes[a][0] - nodes[b][0], nodes[a][1] - nodes[b][1]); if (L < 1e-6) return;
+    mass[a] += mat.kgpm * L / 2; mass[b] += mat.kgpm * L / 2;
+    members.push({ a, b, EA: CFG.stiff * Math.max(mat.zug, mat.druck, 1000), id: k + 1, mat, L });
+  });
+  const loads = [], cases = [];
+  if (lv.kind === 'tower' && lv.payload > 0) {
+    const top = BB.payloadNodeIdx(lv, design);
+    top.forEach(i => { mass[i] += lv.payload / top.length; });
+    cases.push(`Nutzlast ${BB.fmt(lv.payload / 1000)} t oben`);
+  }
+  if (lv.truck && lv.roadA) {
+    const mid = (lv.roadA.x + lv.roadB.x) / 2, sp = lv.truck.spec, mAx = lv.truck.t * 1000 / sp.axles.length;
+    const s0 = mid - sp.length / 2;
+    const road = members.filter(m => BB.onRoad(lv, ...nodes[m.a]) && BB.onRoad(lv, ...nodes[m.b]));
+    for (const off of sp.axles) {
+      const x = s0 + off;
+      const m = road.find(r => x >= Math.min(nodes[r.a][0], nodes[r.b][0]) - 1e-9 && x <= Math.max(nodes[r.a][0], nodes[r.b][0]) + 1e-9);
+      if (!m) continue;
+      const xa = nodes[m.a][0], xb = nodes[m.b][0], w = (x - xa) / ((xb - xa) || 1);
+      mass[m.a] += mAx * (1 - w); mass[m.b] += mAx * w;
+    }
+    cases.push(`${sp.name} (${BB.fmt(lv.truck.t)} t) in Feldmitte`);
+  }
+  const ax = lv.quake ? lv.quake.pga * G / CFG.quakeQ : 0;
+  if (lv.quake) cases.push(`Erdbeben-Ersatzlast ${BB.fmt(lv.quake.pga)} g`);
+  nodes.forEach((p, i) => { if (i >= nA) loads.push({ node: i, fx: mass[i] * ax, fy: -mass[i] * G }); });
+  if (lv.wind) {
+    const q = 0.5 * 1.25 * lv.wind.gust * lv.wind.gust;
+    const depth = lv.kind === 'tower' ? CFG.windDepthTower : CFG.windDepthBridge;
+    for (const m of members) {
+      const fx = q * Math.abs(nodes[m.a][1] - nodes[m.b][1]) * depth * 0.5;
+      loads.push({ node: m.a, fx }); loads.push({ node: m.b, fx });
+    }
+    cases.push(`Böe ${Math.round(lv.wind.gust * 3.6)} km/h`);
+  }
+  const supports = lv.anchors.map((a, i) => ({ node: i, x: true, y: true }));
+  // freie Knoten, die auf dem Boden stehen, wirken wie Rollenlager
+  nodes.forEach((p, i) => { if (i >= nA && p[1] <= BB.groundAt(lv, p[0]) + 1e-6) supports.push({ node: i, y: true }); });
+  const res = solve({ nodes, members, supports, loads });
+  res.members = members; res.cases = cases;
+  if (res.ok) { res.byId = {}; members.forEach((m, k) => { res.byId[m.id] = res.forces[k]; }); }
+  return res;
+}
+BB.Statics = { solve, analyzeDesign, MECH_MSG };
+if (typeof module !== 'undefined' && module.exports) module.exports = BB;
+})();
+
+/* Bebenbau – Erklärungen nach jedem Test (Grundlage für spätere Lernkapitel Technische Mechanik).
+   Vorzeichen: Zug +, Druck −, Kräfte in kN. */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+const kN = f => Math.round(f / 1000);
+// Kraftbetrag für Text: unter 20 kN mit einer Nachkommastelle
+const kNt = f => { const v = Math.abs(f) / 1000; return v < 20 ? String(Math.round(v * 10) / 10).replace('.', ',') : String(Math.round(v)); };
+const fmtN = v => String(v).replace('.', ',');
+function forceLabel(f) { const v = kN(f); return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + ' kN'; }
+function capText(mat, mode) {
+  if (mode === 'zug') return mat.zug > 0 ? `${mat.name} hält nur ${kNt(mat.zug)} kN Zug` : `${mat.name} hält keinen Zug`;
+  return mat.druck > 0 ? `${mat.name} hält nur ${kN(mat.druck)} kN Druck` : `${mat.name} kann keinen Druck aufnehmen`;
+}
+function tip(fail) {
+  if (fail.mode === 'zug') {
+    if (fail.mat.name === 'Mauerwerk' || fail.mat.name === 'Stahlbeton') return 'Mauerwerk und Beton reißen schon bei wenig Zug. Für gezogene Stäbe nimm Stahlseil oder Stahlprofil.';
+    return 'Tipp: Zugstäbe aus Stahlseil sind günstig und stark. Oder verteile die Last mit einem zusätzlichen Dreieck.';
+  }
+  if (fail.buckled) return `Der Stab ist ${fmtN(Math.round(fail.L0 * 10) / 10)} m lang und ist ausgeknickt: Lange Druckstäbe tragen viel weniger (nur ${kN(fail.cap)} statt ${kN(fail.capFull)} kN). Mach ihn kürzer, z. B. mit einem Zwischenknoten.`;
+  if (fail.mat.name === 'Stahlseil') return 'Ein Seil kann nur ziehen, nicht drücken.';
+  return 'Tipp: Für Druckstäbe sind Mauerwerk und Stahlbeton günstig und stark, solange sie kurz sind.';
+}
+function explain(sim, stat) {
+  const res = sim.result || { win: false, reason: '' };
+  const out = { win: res.win, title: '', lines: [], memberId: null, mode: null };
+  const f0 = sim.failures[0];
+  if (f0) {
+    const verb = f0.mode === 'zug' ? 'ist gerissen' : (f0.buckled ? 'ist ausgeknickt' : 'wurde zerdrückt');
+    out.memberId = f0.id; out.mode = f0.mode;
+    out.title = `Stab ${f0.id} ${verb}: ${kNt(f0.f)} kN ${f0.mode === 'zug' ? 'Zug' : 'Druck'}, ` +
+      (f0.buckled ? `als ${fmtN(Math.round(f0.L0 * 10) / 10)}-m-Stab aus ${f0.mat.name} hält er nur ${kNt(f0.cap)} kN` : capText(f0.mat, f0.mode)) + '.';
+    out.lines.push(tip(f0));
+    if (sim.failures.length === 2) out.lines.push('Danach ist noch ein weiterer Stab gebrochen.');
+    else if (sim.failures.length > 2) out.lines.push(`Danach sind noch ${sim.failures.length - 1} weitere Stäbe gebrochen.`);
+    if (res.win) out.lines.unshift('Gehalten hat es trotzdem, weil andere Stäbe die Last übernommen haben.');
+  } else {
+    // Am stärksten ausgenutzter Stab
+    let best = null; for (const m of sim.members) if (!best || m.peakRatio > best.peakRatio) best = m;
+    if (best && best.peakRatio > 0) {
+      out.memberId = best.id; out.mode = best.peakMode;
+      const cap = best.peakMode === 'zug' ? best.capT : best.capC;
+      out.title = `Am stärksten belastet: Stab ${best.id} (${best.mat.name}) mit ${kNt(best.peakF)} kN ${best.peakMode === 'zug' ? 'Zug' : 'Druck'} von ${kN(cap)} kN möglich, also ${Math.round(best.peakRatio * 100)} %.`;
+    }
+    if (!res.win && res.reason) out.lines.push(res.reason);
+    else if (res.win && best && best.peakRatio < 0.5) out.lines.push('Da ist noch Luft: Du könntest leichter und billiger bauen.');
+  }
+  // Statische Ersatzrechnung (exakter Fachwerklöser) zum Vergleich
+  out.static = null;
+  if (stat && stat.ok) {
+    out.static = stat;
+    if (out.memberId && stat.byId[out.memberId] !== undefined) {
+      out.lines.push(`Statisch nachgerechnet (${stat.cases.join(', ') || 'Eigengewicht'}): Stab ${out.memberId} = ${forceLabel(stat.byId[out.memberId])}` +
+        (sim.lv.quake || sim.lv.wind || sim.lv.truck ? '. Der Rest kommt aus der Bewegung (Schwingen, Fahren).' : '.'));
+    }
+    const rs = stat.reactions.filter(r => Math.hypot(r.rx, r.ry) > 500).map(r => {
+      const a = sim.lv.anchors[r.node];
+      return `x = ${fmtN(a.x)} m: ${kN(r.ry) >= 0 ? '↑' : '↓'} ${Math.abs(kN(r.ry))} kN` + (Math.abs(kN(r.rx)) ? `, ${kN(r.rx) >= 0 ? '→' : '←'} ${Math.abs(kN(r.rx))} kN` : '');
+    });
+    if (rs.length) out.lines.push('Auflagerkräfte statisch: ' + rs.join(' · '));
+  } else if (stat && stat.mechanism) {
+    out.lines.push('Statik-Check: System ist beweglich. Dein Bauwerk klappt zusammen, weil eine Diagonale fehlt: Nur Dreiecke sind formstabil.');
+  } else {
+    const r = sim.reactions.filter(x => x.peak > 500).sort((a, b) => b.peak - a.peak)[0];
+    if (r) out.lines.push(`Größte Auflagerkraft: ${kN(r.peak)} kN am Anker bei x = ${fmtN(r.x)} m.`);
+  }
+  return out;
+}
+BB.Explain = { explain, forceLabel, kN, capText };
+BB.LESSONS = BB.LESSONS || [];  // Platz für spätere Lernkapitel (Technische Mechanik)
+if (typeof module !== 'undefined' && module.exports) module.exports = BB;
+})();
+
+/* Bebenbau – Zeichnen (Canvas 2D): Himmel, Gelände, Bauwerk, Fahrzeuge, Bauarbeiter, Trümmer, Kraftanzeige */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+const TAU = Math.PI * 2;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function stressColor(r) {
+  r = Math.max(0, Math.min(1.2, r));
+  let c;
+  if (r < 0.6) { const t = r / 0.6; c = [lerp(60, 245, t), lerp(185, 205, t), lerp(80, 40, t)]; }
+  else { const t = Math.min(1, (r - 0.6) / 0.4); c = [lerp(245, 225, t), lerp(205, 40, t), lerp(40, 30, t)]; }
+  return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+}
+
+class Camera {
+  constructor() { this.s = 30; this.ox = 0; this.oy = 0; this.shx = 0; this.shy = 0; }
+  X(x) { return this.ox + x * this.s + this.shx; }
+  Y(y) { return this.oy - y * this.s + this.shy; }
+  toWorld(px, py) { return { x: (px - this.ox) / this.s, y: (this.oy - py) / this.s }; }
+  fit(b, rect) {
+    const bw = b.x1 - b.x0, bh = b.y1 - b.y0;
+    this.s = Math.min(rect.w / bw, rect.h / bh);
+    this.ox = rect.x + rect.w / 2 - (b.x0 + bw / 2) * this.s;
+    this.oy = rect.y + rect.h / 2 + (b.y0 + bh / 2) * this.s;
+    this.fitS = this.s;
+  }
+}
+function levelBounds(lv) {
+  if (lv.kind === 'tower') return { x0: lv.bx0 - 3, x1: lv.bx1 + 3, y0: -1.5, y1: lv.by1 + Math.max(2.5, lv.H * 0.08) };
+  return { x0: lv.bx0 - 2.5, x1: lv.bx1 + 2.5, y0: lv.gapBottom - 0.5, y1: lv.by1 + 1.2 };
+}
+
+// ---------- Hintergrund ----------
+function sky(ctx, W, H, t, storm) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  if (storm > 0.05) { g.addColorStop(0, `rgb(${lerp(120, 70, storm)|0},${lerp(180, 90, storm)|0},${lerp(230, 110, storm)|0})`); g.addColorStop(1, `rgb(${lerp(215, 140, storm)|0},${lerp(235, 150, storm)|0},${lerp(245, 160, storm)|0})`); }
+  else { g.addColorStop(0, '#6fb6ec'); g.addColorStop(0.7, '#cfe9f7'); g.addColorStop(1, '#eaf5fb'); }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (storm < 0.5) { ctx.fillStyle = 'rgba(255,236,140,0.9)'; ctx.beginPath(); ctx.arc(W * 0.12, H * 0.12, 26, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = storm > 0.05 ? 'rgba(90,100,115,0.55)' : 'rgba(255,255,255,0.85)';
+  for (let i = 0; i < 5; i++) {
+    const x = ((i * 157 + t * (8 + i * 3) * (1 + storm * 6)) % (W + 200)) - 100, y = 50 + (i * 71) % (H * 0.3);
+    cloud(ctx, x, y, 0.7 + (i % 3) * 0.25);
+  }
+}
+function cloud(ctx, x, y, s) {
+  ctx.beginPath(); ctx.arc(x, y, 18 * s, 0, TAU); ctx.arc(x + 20 * s, y - 8 * s, 22 * s, 0, TAU); ctx.arc(x + 44 * s, y, 17 * s, 0, TAU); ctx.rect(x, y, 44 * s, 14 * s); ctx.fill();
+}
+function skyline(ctx, W, gy) {
+  ctx.fillStyle = 'rgba(80,110,140,0.25)';
+  const hs = [40, 70, 55, 95, 50, 80, 60, 120, 45, 65, 85, 50];
+  let x = -10;
+  for (let i = 0; x < W; i++) { const w = 28 + (i * 13) % 22, h = hs[i % hs.length]; ctx.fillRect(x, gy - h, w, h); x += w + 4; }
+  // Michel-Turm
+  ctx.beginPath(); const mx = W * 0.62; ctx.moveTo(mx - 9, gy); ctx.lineTo(mx - 9, gy - 110); ctx.lineTo(mx, gy - 150); ctx.lineTo(mx + 9, gy - 110); ctx.lineTo(mx + 9, gy); ctx.fill();
+}
+function crane(ctx, x, gy, h, t, s) {
+  s = s || 1;
+  ctx.save(); ctx.strokeStyle = '#e8a317'; ctx.lineWidth = 2 * s; ctx.globalAlpha = 0.85;
+  const w = 10 * s;
+  ctx.beginPath();
+  for (let y = 0; y < h; y += w) { ctx.moveTo(x, gy - y); ctx.lineTo(x + w, gy - y - w); ctx.moveTo(x + w, gy - y); ctx.lineTo(x, gy - y - w); }
+  ctx.moveTo(x, gy); ctx.lineTo(x, gy - h); ctx.moveTo(x + w, gy); ctx.lineTo(x + w, gy - h); ctx.stroke();
+  const jl = 150 * s, ang = Math.sin(t * 0.2) * 0.04;
+  ctx.translate(x + w / 2, gy - h); ctx.rotate(ang);
+  ctx.beginPath(); ctx.moveTo(-50 * s, 0); ctx.lineTo(jl, 0); ctx.moveTo(-50 * s, -8 * s); ctx.lineTo(jl * 0.9, -8 * s);
+  for (let k = -50 * s; k < jl * 0.9; k += 12 * s) { ctx.moveTo(k, 0); ctx.lineTo(k + 6 * s, -8 * s); ctx.lineTo(k + 12 * s, 0); }
+  ctx.moveTo(0, -8 * s); ctx.lineTo(0, -26 * s); ctx.lineTo(jl * 0.7, -8 * s); ctx.moveTo(0, -26 * s); ctx.lineTo(-45 * s, -8 * s); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.fillRect(-48 * s, 0, 20 * s, 10 * s);
+  ctx.fillStyle = '#e8a317'; ctx.fillRect(-6 * s, 2 * s, 14 * s, 10 * s);
+  const hx = jl * 0.6 + Math.sin(t * 0.5) * 20 * s, hy = 60 * s + Math.sin(t * 0.7) * 6 * s;
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, 0); ctx.lineTo(hx, hy); ctx.stroke();
+  ctx.fillStyle = '#b4783a'; ctx.fillRect(hx - 12 * s, hy, 24 * s, 6 * s);
+  ctx.restore();
+}
+
+// ---------- Gelände ----------
+function isWater(lv) { return /alster|elbe|fluss|hafen/i.test(lv.name + ' ' + lv.beschreibung); }
+function terrain(ctx, cam, lv, W, H, t) {
+  const X = x => cam.X(x), Y = y => cam.Y(y);
+  const bottom = H + 400;
+  if (lv.kind === 'tower') {
+    const gy = Y(0);
+    ctx.fillStyle = '#7a5a3a'; ctx.fillRect(-400, gy, W + 800, bottom);
+    ctx.fillStyle = '#5c9e3c'; ctx.fillRect(-400, gy, W + 800, Math.max(3, cam.s * 0.25));
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let i = 0; i < 30; i++) ctx.fillRect(((i * 97) % (W + 40)) - 20, gy + 12 + (i * 37) % 120, 6, 3);
+    for (const a of lv.anchors) { ctx.fillStyle = '#9b9b95'; ctx.fillRect(X(a.x - 0.6), Y(a.y), cam.s * 1.2, cam.s * 0.6); }
+    return;
+  }
+  const A = lv.roadA, B = lv.roadB, gb = lv.gapBottom;
+  // Rückwand des Grabens
+  const gwTop = Math.min(A.y, B.y);
+  const gw = ctx.createLinearGradient(0, Y(gwTop), 0, Y(gb));
+  gw.addColorStop(0, 'rgba(120,92,62,0.15)'); gw.addColorStop(1, 'rgba(90,68,46,0.55)');
+  ctx.fillStyle = gw; ctx.fillRect(X(A.x), Y(gwTop), X(B.x) - X(A.x), Y(gb) - Y(gwTop));
+  // Grabensohle
+  if (isWater(lv)) {
+    ctx.fillStyle = '#2e6fa3'; ctx.fillRect(X(A.x), Y(gb + 1.0), X(B.x) - X(A.x), bottom);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let x = A.x; x < B.x; x += 0.5) { const yy = Y(gb + 1.0 + 0.08 * Math.sin(x * 2 + t * 2)); if (x === A.x) ctx.moveTo(X(x), yy); else ctx.lineTo(X(x), yy); }
+    ctx.stroke();
+    ctx.fillStyle = '#5a4a3a'; ctx.fillRect(X(A.x), Y(gb), X(B.x) - X(A.x), bottom);
+    ctx.fillStyle = 'rgba(46,111,163,0.85)'; ctx.fillRect(X(A.x), Y(gb + 1.0), X(B.x) - X(A.x), Y(gb) - Y(gb + 1.0) + 1);
+  } else {
+    ctx.fillStyle = '#6e5236'; ctx.fillRect(X(A.x), Y(gb), X(B.x) - X(A.x), bottom);
+    if (/verwerfung/i.test(lv.name)) { ctx.strokeStyle = '#2b1d10'; ctx.lineWidth = 3; ctx.beginPath(); const mx = (A.x + B.x) / 2; ctx.moveTo(X(mx - 1), Y(gb)); ctx.lineTo(X(mx), Y(gb - 1)); ctx.lineTo(X(mx - 0.4), Y(gb - 2)); ctx.lineTo(X(mx + 0.5), Y(gb - 4)); ctx.stroke(); }
+  }
+  // Plateaus
+  const plat = (x0, x1, y, flip) => {
+    ctx.fillStyle = '#8a6844'; ctx.fillRect(X(x0), Y(y), X(x1) - X(x0), bottom);
+    ctx.fillStyle = '#5c9e3c'; ctx.fillRect(X(x0), Y(y) - 2, X(x1) - X(x0), Math.max(4, cam.s * 0.2));
+    ctx.fillStyle = '#4a4a4f'; ctx.fillRect(X(x0), Y(y) - 2, X(x1) - X(x0), Math.max(3, cam.s * 0.12));
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let i = 0; i < 12; i++) { const xx = x0 + ((i * 1.7) % (x1 - x0)); ctx.fillRect(X(xx), Y(y - 1 - (i % 4) * 0.8), 6, 3); }
+  };
+  plat(A.x - 60, A.x, A.y); plat(B.x, B.x + 60, B.y);
+  // Pfeiler und Pylone für Zusatzanker
+  for (const a of lv.anchors) {
+    if (BB.onRoad(lv, a.x, a.y)) continue;
+    const base = (a.x <= A.x + 1e-6 || a.x >= B.x - 1e-6) ? (a.x <= A.x + 1e-6 ? A.y : B.y) : gb;
+    const w = 1.1;
+    if (a.y < base) continue;
+    ctx.fillStyle = a.y > (A.y + B.y) / 2 ? '#a9a9a3' : '#7d746a';
+    ctx.fillRect(X(a.x - w / 2), Y(a.y), w * cam.s, Y(base) - Y(a.y) + 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(X(a.x + w / 4), Y(a.y), w * cam.s / 4, Y(base) - Y(a.y));
+  }
+  // Rampe / Tiefgarage
+  if (Math.abs(A.y - B.y) > 0.5) {
+    ctx.fillStyle = '#3d3d42'; ctx.fillRect(X(B.x + 1), Y(B.y + 2.6), cam.s * 4, cam.s * 2.6);
+    ctx.fillStyle = '#ffd34d'; ctx.font = `bold ${Math.max(9, cam.s * 0.5)}px sans-serif`; ctx.fillText('P', X(B.x + 1.3), Y(B.y + 1.9));
+  }
+}
+
+// ---------- Bauwerk ----------
+function memberPath(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
+function drawMember(ctx, cam, p, q, mat, opts) {
+  const x1 = cam.X(p[0]), y1 = cam.Y(p[1]), x2 = cam.X(q[0]), y2 = cam.Y(q[1]);
+  const w = Math.max(mat.cable ? 2 : 4, Math.min(mat.cable ? 4 : 13, mat.width * cam.s));
+  ctx.lineCap = 'round';
+  if (opts.highlight) { ctx.strokeStyle = `rgba(255,40,200,${0.45 + 0.35 * Math.sin(opts.t * 8)})`; ctx.lineWidth = w + 12; memberPath(ctx, x1, y1, x2, y2); ctx.stroke(); }
+  ctx.strokeStyle = opts.ghost ? 'rgba(0,0,0,0.25)' : mat.dark; ctx.lineWidth = w + 2; memberPath(ctx, x1, y1, x2, y2); ctx.stroke();
+  ctx.strokeStyle = opts.stress != null ? stressColor(opts.stress) : mat.color; ctx.lineWidth = w; memberPath(ctx, x1, y1, x2, y2); ctx.stroke();
+  if (opts.stress == null && !mat.cable) {
+    const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+    if (mat.icon === 'mauer') { for (let d = 6; d < len - 4; d += 8) { ctx.beginPath(); ctx.moveTo(x1 + ux * d - uy * w / 2, y1 + uy * d + ux * w / 2); ctx.lineTo(x1 + ux * d + uy * w / 2, y1 + uy * d - ux * w / 2); ctx.stroke(); } }
+    else if (mat.icon === 'stahl') { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; memberPath(ctx, x1, y1, x2, y2); ctx.stroke(); }
+    else if (mat.icon === 'holz') { ctx.strokeStyle = 'rgba(80,40,10,0.35)'; ctx.beginPath(); ctx.moveTo(x1 - uy * w * 0.2, y1 + ux * w * 0.2); ctx.lineTo(x2 - uy * w * 0.2, y2 + ux * w * 0.2); ctx.stroke(); }
+    else if (mat.icon === 'beton') { ctx.fillStyle = 'rgba(0,0,0,0.2)'; for (let d = 5; d < len - 3; d += 11) ctx.fillRect(x1 + ux * d - 1, y1 + uy * d - 1, 2, 2); }
+  }
+}
+function drawJoint(ctx, cam, x, y, anchor, r) {
+  const X = cam.X(x), Y = cam.Y(y);
+  r = r || Math.max(4, Math.min(8, cam.s * 0.18));
+  if (anchor) {
+    ctx.fillStyle = '#d9480f'; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X - r * 1.4, Y + r * 2); ctx.lineTo(X + r * 1.4, Y + r * 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X, Y, r * 0.9, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#d9480f'; ctx.lineWidth = 3; ctx.stroke();
+  } else {
+    ctx.fillStyle = '#f6f6f2'; ctx.beginPath(); ctx.arc(X, Y, r * 0.75, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+}
+function arrow(ctx, x1, y1, x2, y2, color, w) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 7 + w;
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hl * 0.8, y2 - Math.sin(a) * hl * 0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - Math.cos(a - 0.45) * hl, y2 - Math.sin(a - 0.45) * hl); ctx.lineTo(x2 - Math.cos(a + 0.45) * hl, y2 - Math.sin(a + 0.45) * hl); ctx.closePath(); ctx.fill();
+}
+function pill(ctx, x, y, text, bg, fg, size) {
+  ctx.font = `bold ${size || 10}px -apple-system, system-ui, sans-serif`;
+  const w = ctx.measureText(text).width + 6, h = (size || 10) + 4;
+  ctx.fillStyle = bg; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x - w / 2, y - h / 2, w, h, 4); else ctx.rect(x - w / 2, y - h / 2, w, h); ctx.fill();
+  ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, y + 0.5); ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+}
+// Kraftanzeige: Stabkräfte (Zug + blau, Druck − rot) und Auflagerpfeile
+function forceOverlay(ctx, cam, pos, members, reactions, anchors) {
+  const many = members.length > 40;
+  for (const m of members) {
+    if (m.broken || Math.abs(m.f) < 500) continue;
+    const p = pos(m.a), q = pos(m.b);
+    if (many && Math.abs(m.ratio || 0) < 0.35) continue;
+    const kn = Math.round(m.f / 1000);
+    pill(ctx, cam.X((p[0] + q[0]) / 2), cam.Y((p[1] + q[1]) / 2), (kn > 0 ? '+' : '−') + Math.abs(kn), m.f > 0 ? 'rgba(30,90,200,0.88)' : 'rgba(200,40,40,0.88)', '#fff', 10);
+  }
+  for (const r of reactions) {
+    const mag = Math.hypot(r.rx, r.ry); if (mag < 500) continue;
+    const a = anchors[r.node !== undefined ? r.node : r.i];
+    const L = Math.min(70, 18 + Math.log10(1 + mag / 1000) * 28);
+    const ux = r.rx / mag, uy = r.ry / mag;
+    const X = cam.X(a.x), Y = cam.Y(a.y) + 6;
+    arrow(ctx, X - ux * L, Y + uy * L, X, Y, 'rgba(20,140,60,0.95)', 3);
+    pill(ctx, X - ux * (L + 12), Y + uy * (L + 12), Math.round(mag / 1000) + ' kN', 'rgba(20,140,60,0.95)', '#fff', 10);
+  }
+}
+
+// ---------- Figuren & Fahrzeuge ----------
+function worker(ctx, x, y, s, pose, t, seed) {
+  // x,y = Fußpunkt in Pixeln, s = Größe (px pro "Figur-Meter", Figur ca. 1,8 m)
+  ctx.save(); ctx.translate(x, y);
+  const ph = t * 8 + seed * 2;
+  let bob = 0, armL = 0.6, armR = 0.6, legA = 0;
+  if (pose === 'walk') { legA = Math.sin(ph) * 0.5; bob = Math.abs(Math.sin(ph)) * 0.05; armL = 0.3 + Math.sin(ph) * 0.4; armR = 0.3 - Math.sin(ph) * 0.4; }
+  if (pose === 'cheer') { bob = Math.abs(Math.sin(ph * 0.8)) * 0.35; armL = 2.6 + Math.sin(ph) * 0.2; armR = 2.6 - Math.sin(ph) * 0.2; }
+  if (pose === 'panic') { bob = Math.abs(Math.sin(ph * 1.5)) * 0.1; armL = 2.9; armR = 2.9; ctx.translate(Math.sin(ph * 2) * s * 0.06, 0); }
+  if (pose === 'watch') { armL = 0.2; armR = 2.0 + Math.sin(ph * 0.3) * 0.1; }
+  const u = s;
+  ctx.translate(0, -bob * u);
+  ctx.lineCap = 'round'; ctx.strokeStyle = '#2b3a55'; ctx.lineWidth = Math.max(2, u * 0.16);
+  ctx.beginPath(); ctx.moveTo(0, -0.8 * u); ctx.lineTo(Math.sin(legA) * 0.45 * u, 0); ctx.moveTo(0, -0.8 * u); ctx.lineTo(-Math.sin(legA) * 0.45 * u, 0); ctx.stroke();
+  ctx.fillStyle = '#f57c00'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-0.22 * u, -1.45 * u, 0.44 * u, 0.7 * u, 0.1 * u); else ctx.rect(-0.22 * u, -1.45 * u, 0.44 * u, 0.7 * u); ctx.fill();
+  ctx.fillStyle = '#e8f04a'; ctx.fillRect(-0.22 * u, -1.15 * u, 0.44 * u, 0.06 * u);
+  ctx.strokeStyle = '#f2c094'; ctx.lineWidth = Math.max(1.5, u * 0.12);
+  ctx.beginPath(); ctx.moveTo(-0.18 * u, -1.35 * u); ctx.lineTo(-0.18 * u - Math.sin(armL) * 0.5 * u, -1.35 * u + Math.cos(armL) * 0.5 * u);
+  ctx.moveTo(0.18 * u, -1.35 * u); ctx.lineTo(0.18 * u + Math.sin(armR) * 0.5 * u, -1.35 * u + Math.cos(armR) * 0.5 * u); ctx.stroke();
+  ctx.fillStyle = '#f2c094'; ctx.beginPath(); ctx.arc(0, -1.65 * u, 0.22 * u, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0.07 * u, -1.67 * u, 0.035 * u, 0, TAU); ctx.arc(-0.07 * u, -1.67 * u, 0.035 * u, 0, TAU); ctx.fill();
+  if (pose === 'panic') { ctx.beginPath(); ctx.arc(0, -1.55 * u, 0.06 * u, 0, TAU); ctx.fill(); }
+  else { ctx.strokeStyle = '#222'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, -1.6 * u, 0.08 * u, 0.2, Math.PI - 0.2); ctx.stroke(); }
+  ctx.fillStyle = '#ffd400'; ctx.beginPath(); ctx.arc(0, -1.72 * u, 0.25 * u, Math.PI, 0); ctx.fill(); ctx.fillRect(-0.32 * u, -1.74 * u, 0.64 * u, 0.06 * u);
+  ctx.restore();
+}
+function bubble(ctx, x, y, text) {
+  ctx.font = 'bold 13px -apple-system, system-ui, sans-serif';
+  const w = ctx.measureText(text).width + 16, h = 24;
+  const bx = Math.max(4, Math.min(ctx.canvas.width / (window.devicePixelRatio || 1) - w - 4, x - w / 2)), by = y - h - 10;
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 10); else ctx.rect(bx, by, w, h); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 5, by + h); ctx.lineTo(x, by + h + 8); ctx.lineTo(x + 5, by + h); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.fillText(text, bx + 8, by + 16.5);
+}
+function wheel(ctx, x, y, r, t) {
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#bbb'; ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + Math.cos(t) * r * 0.4, y + Math.sin(t) * r * 0.4); ctx.lineTo(x - Math.cos(t) * r * 0.4, y - Math.sin(t) * r * 0.4); ctx.stroke();
+}
+function vehicle(ctx, cam, v, t) {
+  if (v.kind === 'worker') {
+    const x = cam.X(v.s), y = cam.Y(v.y);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(v.rot); worker(ctx, 0, 0, cam.s * 0.95, v.state === 'fall' ? 'panic' : 'walk', t, v.s); ctx.restore();
+    return;
+  }
+  const L = v.length, s = cam.s;
+  const ang = v.ys.length > 1 ? Math.atan2(v.ys[v.ys.length - 1] - v.ys[0], v.axles[v.axles.length - 1] - v.axles[0]) : 0;
+  ctx.save();
+  ctx.translate(cam.X(v.s), cam.Y(v.state === 'fall' ? v.y : v.ys[0]));
+  ctx.rotate(-ang - (v.state === 'fall' ? v.rot : 0));
+  const r = v.kind === 'pkw' ? 0.33 : 0.5, roll = v.s / r;
+  const wy = -r;
+  if (v.kind === 'pkw') {
+    ctx.fillStyle = '#d62f2f'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(0, -1.25 * s, L * s, 0.75 * s, 0.2 * s); else ctx.rect(0, -1.25 * s, L * s, 0.75 * s); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0.9 * s, -1.2 * s); ctx.lineTo(1.4 * s, -1.75 * s); ctx.lineTo(3.0 * s, -1.75 * s); ctx.lineTo(3.6 * s, -1.2 * s); ctx.fill();
+    ctx.fillStyle = '#bfe3f5'; ctx.beginPath(); ctx.moveTo(1.15 * s, -1.25 * s); ctx.lineTo(1.5 * s, -1.65 * s); ctx.lineTo(2.2 * s, -1.65 * s); ctx.lineTo(2.2 * s, -1.25 * s); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(2.35 * s, -1.25 * s); ctx.lineTo(2.35 * s, -1.65 * s); ctx.lineTo(2.95 * s, -1.65 * s); ctx.lineTo(3.35 * s, -1.25 * s); ctx.fill();
+    ctx.fillStyle = '#ffe680'; ctx.fillRect(L * s - 0.2 * s, -1.05 * s, 0.2 * s, 0.18 * s);
+  } else {
+    const cab = v.kind === 'lkw' ? 2.2 : 2.0;
+    ctx.fillStyle = '#333'; ctx.fillRect(0, -1.3 * s, L * s, 0.35 * s);
+    ctx.fillStyle = v.kind === 'lkw' ? '#1f6fbf' : '#f0b400';
+    ctx.fillRect((L - cab) * s, -3.0 * s, cab * s, 1.8 * s);
+    ctx.fillStyle = '#bfe3f5'; ctx.fillRect((L - cab + 0.9) * s, -2.8 * s, (cab - 1.1) * s, 0.8 * s);
+    if (v.kind === 'mischer') {
+      ctx.save(); ctx.translate((L - cab) * s / 2, -2.4 * s); ctx.rotate(-0.12);
+      ctx.fillStyle = '#e6e6e6'; ctx.beginPath(); ctx.ellipse(0, 0, (L - cab) * s / 2 * 0.95, 1.15 * s, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = '#f08c00'; ctx.lineWidth = Math.max(2, 0.25 * s);
+      for (let k = 0; k < 4; k++) { const ph = (t * 2 + k * 1.6) % 6.4 - 3.2; ctx.beginPath(); ctx.moveTo(ph * s * 0.8, -1.1 * s); ctx.lineTo(ph * s * 0.8 + 0.8 * s, 1.1 * s); ctx.stroke(); }
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#eceae4'; ctx.fillRect(0.1 * s, -3.3 * s, (L - cab - 0.3) * s, 2.1 * s);
+      ctx.fillStyle = '#d9480f'; ctx.font = `bold ${Math.max(8, 0.75 * s)}px sans-serif`; ctx.fillText('BEBENBAU', 0.5 * s, -2.0 * s);
+    }
+  }
+  for (const a of v.axles) wheel(ctx, a * s, wy * s, r * s, roll);
+  ctx.restore();
+}
+function payload(ctx, cam, pts, kg, t) {
+  if (!pts.length) return;
+  let x0 = Infinity, x1 = -Infinity, ys = 0;
+  for (const p of pts) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); ys += p[1]; }
+  const yc = ys / pts.length;
+  const left = pts.reduce((a, b) => a[0] < b[0] ? a : b), right = pts.reduce((a, b) => a[0] > b[0] ? a : b);
+  const ang = right[0] - left[0] > 0.1 ? Math.atan2(right[1] - left[1], right[0] - left[0]) : 0;
+  const w = Math.max(2.5, x1 - x0 + 0.6), h = kg > 0 ? Math.min(3, 1.2 + kg / 8000) : 0;
+  ctx.save(); ctx.translate(cam.X((x0 + x1) / 2), cam.Y(yc)); ctx.rotate(-ang);
+  if (kg > 0) {
+    ctx.fillStyle = '#2a7d8c'; ctx.fillRect(-w / 2 * cam.s, -h * cam.s, w * cam.s, h * cam.s);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1;
+    for (let k = 1; k < 8; k++) { const xx = -w / 2 * cam.s + k * w * cam.s / 8; ctx.beginPath(); ctx.moveTo(xx, -h * cam.s); ctx.lineTo(xx, 0); ctx.stroke(); }
+    pill(ctx, 0, -h * cam.s / 2, Math.round(kg / 100) / 10 + ' t', '#fff', '#1d4f57', Math.max(10, Math.min(16, cam.s * 0.5)));
+  } else {
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -2.5 * cam.s); ctx.stroke();
+    ctx.fillStyle = '#d9480f'; ctx.beginPath(); ctx.moveTo(0, -2.5 * cam.s); ctx.lineTo((1 + 0.1 * Math.sin(t * 9)) * cam.s, -2.2 * cam.s); ctx.lineTo(0, -1.9 * cam.s); ctx.fill();
+  }
+  ctx.restore();
+}
+
+BB.Render = { Camera, levelBounds, sky, skyline, crane, terrain, drawMember, drawJoint, forceOverlay, worker, bubble, vehicle, payload, stressColor, pill, arrow, isWater };
+})();
+
+/* Bebenbau – Geräusche, komplett mit WebAudio erzeugt (keine Dateien) */
+(function () {
+'use strict';
+const BB = globalThis.BB = globalThis.BB || {};
+let ac = null, master = null, noiseBuf = null, muted = false;
+const loops = {};
+function init() {
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  ac = new AC(); master = ac.createGain(); master.gain.value = muted ? 0 : 0.7; master.connect(ac.destination);
+  noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+  const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+}
+function setMuted(m) { muted = m; if (master) master.gain.setTargetAtTime(m ? 0 : 0.7, ac.currentTime, 0.02); }
+function tone(f, dur, type, vol, slide) {
+  if (!ac) return; const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || 'square'; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(vol || 0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, freq, q, vol, delay) {
+  if (!ac) return; const t = ac.currentTime + (delay || 0), s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q || 1;
+  g.gain.setValueAtTime(vol || 0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+}
+function loop(name, freq, type) {
+  if (!ac) return null;
+  if (loops[name]) return loops[name];
+  const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noiseBuf; s.loop = true; f.type = type || 'lowpass'; f.frequency.value = freq; g.gain.value = 0;
+  s.connect(f); f.connect(g); g.connect(master); s.start();
+  return (loops[name] = { s, f, g });
+}
+function setLoop(name, v, freq, type) { const l = loop(name, freq, type); if (l) l.g.gain.setTargetAtTime(Math.max(0, Math.min(1, v)), ac.currentTime, 0.08); }
+let eng = null;
+function setEngine(v, pitch) {
+  if (!ac) return;
+  if (!eng) { const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 300; g.gain.value = 0; o.connect(f); f.connect(g); g.connect(master); o.start(); eng = { o, g }; }
+  eng.g.gain.setTargetAtTime(v * 0.08, ac.currentTime, 0.1); eng.o.frequency.setTargetAtTime(40 + (pitch || 0) * 6, ac.currentTime, 0.1);
+}
+const S = {
+  init, setMuted, get muted() { return muted; },
+  click() { tone(660, 0.05, 'square', 0.06); },
+  place(mat) { tone(mat === 'Stahlseil' ? 900 : mat === 'Holz' ? 300 : 500, 0.08, 'triangle', 0.18, 200); noise(0.06, 2000, 2, 0.08); },
+  remove() { tone(400, 0.12, 'sawtooth', 0.07, 120); },
+  crack(heavy) { noise(0.25, heavy ? 500 : 1800, 0.8, 0.5); tone(heavy ? 80 : 160, 0.3, 'sine', 0.35, 40); },
+  thud() { tone(70, 0.4, 'sine', 0.4, 30); noise(0.3, 200, 0.7, 0.25); },
+  win() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'square', 0.1), i * 110)); },
+  fail() { [392, 370, 349, 262].forEach((f, i) => setTimeout(() => tone(f, i === 3 ? 0.6 : 0.25, 'sawtooth', 0.08), i * 230)); },
+  rumble(v) { setLoop('rumble', v * 0.9, 120, 'lowpass'); },
+  wind(v) { setLoop('wind', v * 0.5, 700, 'bandpass'); },
+  engine: setEngine,
+  stopLoops() { if (!ac) return; for (const k in loops) loops[k].g.gain.setTargetAtTime(0, ac.currentTime, 0.05); if (eng) eng.g.gain.setTargetAtTime(0, ac.currentTime, 0.05); },
+};
+BB.Audio = S;
+})();
+
+/* Bebenbau – Spielablauf, Bedienung (Touch zuerst), Bildschirme, Speicherstand */
+(function () {
+'use strict';
+const BB = window.BB, R = BB.Render, SND = BB.Audio;
+const DATA = window.LEVELDATA || { materialien: [], levels: [] };
+const mats = BB.prepMaterials(DATA.materialien);
+const levels = (DATA.levels || []).map((r, i) => ({ r, i })).sort((a, b) => BB.num(a.r.nr, a.i + 1) - BB.num(b.r.nr, b.i + 1)).map((o, i) => BB.prepLevel(o.r, i));
+const $ = id => document.getElementById(id);
+const cv = $('c'), ctx = cv.getContext('2d');
+const KEY = 'bebenbau.v1';
+let prog = { stars: {}, designs: {}, muted: false, unlockAll: false, seen: {} };
+try { Object.assign(prog, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* leer */ }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch (e) { /* voll */ } };
+SND.setMuted(!!prog.muted);
+const fmt = BB.fmt, kN = v => Math.round(v / 1000);
+const defMat = Math.max(0, mats.findIndex(m => m.name === 'Holz'));
+
+const S = {
+  screen: 'title', lv: null, li: -1, design: null, undo: [], sel: defMat, del: false, showForces: false,
+  sim: null, speed: 1, acc: 0, cam: new R.Camera(), t: 0, particles: [], debris: [], shake: 0, mood: 'idle',
+  bubbles: [], highlight: null, stat: null, statView: null, resultShown: false, doneT: 0, drag: null, preview: null, seed: 1, W: 0, H: 0, dpr: 1,
+};
+
+// ---------------- Bildschirmgröße ----------------
+function resize() {
+  S.dpr = Math.min(3, window.devicePixelRatio || 1);
+  S.W = window.innerWidth; S.H = window.innerHeight;
+  cv.width = Math.round(S.W * S.dpr); cv.height = Math.round(S.H * S.dpr);
+  cv.style.width = S.W + 'px'; cv.style.height = S.H + 'px';
+  if (S.lv) fitCam();
+}
+function viewRect() {
+  const top = ($('hud').classList.contains('hidden') ? 0 : $('hud').getBoundingClientRect().bottom) + 8;
+  const barEl = S.screen === 'test' ? $('testbar') : $('tools');
+  const bot = (barEl.classList.contains('hidden') ? S.H : barEl.getBoundingClientRect().top) - 8;
+  return { x: 10, y: top, w: S.W - 20, h: Math.max(100, bot - top) };
+}
+function fitCam() { S.cam.fit(R.levelBounds(S.lv), viewRect()); }
+
+// ---------------- Bildschirme ----------------
+function show(id, on) { $(id).classList.toggle('hidden', !on); }
+function goTitle() { S.screen = 'title'; S.lv = null; ['levels', 'hud', 'tools', 'testbar', 'modal'].forEach(i => show(i, false)); show('title', true); SND.stopLoops(); }
+function unlocked(i) { if (prog.unlockAll || i === 0) return true; const prev = levels[i - 1]; return !!(prog.stars[prev.nr] > 0); }
+function loadBadges(lv) {
+  const b = [];
+  if (lv.quake) b.push(['beben', 'Beben']);
+  if (lv.wind) b.push(['sturm', 'Sturm']);
+  if (lv.truck) b.push(['lkw', lv.truck.spec.name]);
+  if (lv.kind === 'tower') b.push(['turm', 'Turm ' + fmt(lv.H) + ' m']);
+  if (lv.walkers) b.push(['steg', 'Fußgänger']);
+  return b;
+}
+function goLevels() {
+  S.screen = 'levels'; S.lv = null; ['title', 'hud', 'tools', 'testbar', 'modal'].forEach(i => show(i, false)); show('levels', true); SND.stopLoops();
+  const g = $('levelgrid'); g.innerHTML = '';
+  let total = 0;
+  levels.forEach((lv, i) => {
+    const st = prog.stars[lv.nr] || 0; total += st;
+    const ok = unlocked(i);
+    const el = document.createElement('button');
+    el.className = 'lvl' + (ok ? '' : ' locked') + (lv.quake ? ' quake' : '');
+    el.innerHTML = `<div class="lnr">${lv.nr}</div><div class="lname">${esc(lv.name)}</div>
+      <div class="badges">${loadBadges(lv).map(b => `<span class="badge ${b[0]}">${esc(b[1])}</span>`).join('')}</div>
+      <div class="lstars">${ok ? stars(st) : 'gesperrt'}</div>`;
+    el.onclick = () => { SND.init(); if (!ok) { toast('Schaff erst Level ' + levels[i - 1].nr + '.'); return; } SND.click(); startLevel(i); };
+    g.appendChild(el);
+  });
+  $('startotal').textContent = `${total} / ${levels.length * 3} ★`;
+  $('unlockall').textContent = prog.unlockAll ? 'Alle Level offen (Testmodus an)' : 'Alle Level freischalten (Testmodus)';
+}
+function stars(n) { return '<span class="st on">' + '★'.repeat(n) + '</span><span class="st off">' + '★'.repeat(3 - n) + '</span>'; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+
+function freshDesign(lv) { return { nodes: lv.anchors.map(a => [a.x, a.y]), members: [] }; }
+function validDesign(lv, d) {
+  if (!d || !Array.isArray(d.nodes) || !Array.isArray(d.members)) return false;
+  return lv.anchors.every((a, i) => d.nodes[i] && Math.abs(d.nodes[i][0] - a.x) < 1e-6 && Math.abs(d.nodes[i][1] - a.y) < 1e-6) && d.members.every(m => d.nodes[m[0]] && d.nodes[m[1]] && mats[m[2]]);
+}
+function startLevel(i) {
+  S.li = i; S.lv = levels[i]; S.undo = []; S.del = false; S.sim = null; S.highlight = null; S.debris = []; S.particles = []; S.mood = 'idle'; S.bubbles = [];
+  const saved = prog.designs[S.lv.nr];
+  S.design = validDesign(S.lv, saved) ? JSON.parse(JSON.stringify(saved)) : freshDesign(S.lv);
+  S.screen = 'build';
+  ['title', 'levels', 'testbar', 'modal'].forEach(id => show(id, false)); show('hud', true); show('tools', true);
+  buildToolbar(); changed(true); fitCam(); showIntro();
+}
+function loadText(lv) {
+  const t = [];
+  if (lv.truck) t.push(`${lv.truck.spec.name}, ${fmt(lv.truck.t)} t, ${fmt(lv.truck.kmh)} km/h${lv.truck.brake ? ', bremst mitten auf der Rampe' : ''}`);
+  if (lv.walkers) t.push(`${lv.walkers.n} Bauarbeiter laufen rüber`);
+  if (lv.wind) t.push(`Sturm ${Math.round(lv.wind.v * 3.6)} km/h, Böen bis ${Math.round(lv.wind.gust * 3.6)} km/h, ${fmt(lv.wind.dur)} s`);
+  if (lv.quake) t.push(`Erdbeben ${fmt(lv.quake.pga)} g, ${fmt(lv.quake.f)} Hz, ${fmt(lv.quake.dur)} s`);
+  if (lv.kind === 'tower') t.push(lv.payload > 0 ? `Nutzlast ${fmt(lv.payload / 1000)} t in ${fmt(lv.H)} m Höhe` : `Zielhöhe ${fmt(lv.H)} m`);
+  return t;
+}
+function showIntro() {
+  const lv = S.lv;
+  const first = S.li === 0 && !prog.seen.tut;
+  const tut = first || !prog.seen['k' + lv.kind] ? (lv.kind === 'tower'
+    ? '<ul class="tut"><li>Bau den Turm bis zur <b>grünen Ziellinie</b>. Dort kommt die Nutzlast drauf.</li><li>Nur <b>Dreiecke</b> sind steif. Ein Viereck ohne Diagonale klappt um.</li><li>Seile halten nur Zug: Über Kreuz gespannt steifen sie gut aus.</li></ul>'
+    : '<ul class="tut"><li>Zieh mit dem Finger von einem <b>roten Ankerpunkt</b> zu einem Rasterpunkt: Das wird ein Stab.</li><li>Die <b>gestrichelte Fahrbahn</b> muss durchgehend gebaut sein.</li><li>Tipp auf einen Stab, um ihm das gewählte Material zu geben. Zwei Finger zum Zoomen.</li><li>Dann <b>Test</b> drücken und zittern.</li></ul>') : '';
+  const b = lv.budget;
+  modal(`<div class="ihead"><span class="inr">Level ${lv.nr}</span><h2>${esc(lv.name)}</h2></div>
+    <p class="idesc">${esc(lv.beschreibung)}</p>
+    <div class="chips">${loadText(lv).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>
+    <p class="ibudget">Budget <b>${b} €</b> · ★★★ bis ${Math.floor(b * 0.7)} € · ★★ bis ${Math.floor(b * 0.85)} €</p>${tut}
+    <div class="btns"><button class="big" id="go">Los geht's</button></div>
+    <div class="btns small"><button id="reset">Neu anfangen</button><button id="tolevels">Levelauswahl</button></div>`);
+  $('go').onclick = () => { SND.init(); SND.click(); prog.seen.tut = true; prog.seen['k' + lv.kind] = true; save(); show('modal', false); };
+  $('reset').onclick = () => { pushUndo(); S.design = freshDesign(lv); changed(); show('modal', false); };
+  $('tolevels').onclick = goLevels;
+}
+function modal(html) { $('card').innerHTML = html; $('card').scrollTop = 0; show('modal', true); }
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+
+// ---------------- Werkzeugleiste ----------------
+function buildToolbar() {
+  const row = $('mats'); row.innerHTML = '';
+  mats.forEach((m, i) => {
+    const b = document.createElement('button'); b.className = 'mat' + (i === S.sel ? ' sel' : '');
+    b.innerHTML = `<span class="sw ${m.icon}" style="background:${m.color}"></span><span class="mn">${esc(m.name)}</span><span class="mc">${m.cost} €/m</span>`;
+    b.onclick = () => { S.sel = i; S.del = false; SND.click(); buildToolbar(); updateHUD(); };
+    row.appendChild(b);
+  });
+  const m = mats[S.sel];
+  $('matinfo').innerHTML = `<b>${esc(m.name)}</b>: Zug ${kN(m.zug)} kN · Druck ${m.druck > 0 ? kN(m.druck) + ' kN' : '—'} · ${m.kgpm} kg/m${m.cable ? ' · nur Zug' : m.zug < 0.2 * m.druck ? ' · fast nur Druck' : ''}`;
+  $('bdel').classList.toggle('on', S.del);
+  $('bstat').classList.toggle('on', S.showForces);
+}
+function updateHUD() {
+  const lv = S.lv; if (!lv) return;
+  const cost = BB.designCost(S.design, mats);
+  $('ltitle').textContent = `${lv.nr} · ${lv.name}`;
+  const bp = $('budget'); bp.textContent = `${cost} / ${lv.budget} €`; bp.classList.toggle('over', cost > lv.budget);
+  const pct = Math.min(100, cost / lv.budget * 100);
+  $('budgetbar').style.width = pct + '%'; $('budgetbar').className = cost > lv.budget ? 'over' : cost <= lv.budget * 0.7 ? 'g3' : cost <= lv.budget * 0.85 ? 'g2' : 'g1';
+  $('loadchip').textContent = loadText(lv).join(' · ');
+  const w = $('warn');
+  const mech = S.stat && !S.stat.ok && S.design.members.length >= 2;
+  w.textContent = mech ? 'Achtung: beweglich – da fehlt eine Diagonale' : '';
+  w.classList.toggle('on', !!mech && S.screen === 'build');
+  $('bundo').disabled = !S.undo.length;
+  $('bsound').classList.toggle('off', SND.muted); $('tsound') && $('tsound').classList.toggle('off', SND.muted);
+}
+
+// ---------------- Entwurf bearbeiten ----------------
+function pushUndo() { S.undo.push(JSON.stringify(S.design)); if (S.undo.length > 100) S.undo.shift(); }
+function changed(noSave) {
+  if (!noSave) { prog.designs[S.lv.nr] = S.design; save(); }
+  // statische Ersatzrechnung (exakter Fachwerklöser) für Kraftanzeige und Beweglichkeitswarnung
+  try { S.stat = S.design.members.length ? BB.Statics.analyzeDesign(S.lv, S.design, mats) : null; } catch (e) { S.stat = null; }
+  S.statView = null;
+  if (S.stat && S.stat.ok) {
+    S.statView = S.stat.members.map((m, k) => {
+      const f = S.stat.forces[k], buck = Math.min(1, (BB.CFG.lRef / m.L) ** 2);
+      const capT = m.mat.zug * BB.CFG.strength, capC = m.mat.druck * BB.CFG.strength * buck;
+      return { a: m.a, b: m.b, f, ratio: f >= 0 ? (capT > 0 ? f / capT : 9) : (capC > 0 ? -f / capC : (m.mat.cable ? 0 : 9)), id: m.id };
+    });
+  }
+  updateHUD();
+}
+function nodeAt(x, y) { return S.design.nodes.findIndex(p => Math.abs(p[0] - x) < 1e-6 && Math.abs(p[1] - y) < 1e-6); }
+function cleanup() {
+  const d = S.design, nA = S.lv.anchors.length, used = new Set();
+  d.members.forEach(m => { used.add(m[0]); used.add(m[1]); });
+  const map = []; const nodes = [];
+  d.nodes.forEach((p, i) => { if (i < nA || used.has(i)) { map[i] = nodes.length; nodes.push(p); } });
+  d.members = d.members.map(m => [map[m[0]], map[m[1]], m[2]]); d.nodes = nodes;
+}
+function addMember(ia, q) {
+  const d = S.design, p = d.nodes[ia];
+  const L = Math.hypot(q.x - p[0], q.y - p[1]);
+  if (L < 1e-6) return;
+  if (L > S.lv.maxLen + 1e-6) { toast(`Zu lang: maximal ${fmt(S.lv.maxLen)} m pro Stab.`); SND.remove(); return; }
+  let ib = nodeAt(q.x, q.y);
+  const dup = ib >= 0 ? d.members.findIndex(m => (m[0] === ia && m[1] === ib) || (m[0] === ib && m[1] === ia)) : -1;
+  pushUndo();
+  if (dup >= 0) { d.members[dup][2] = S.sel; }
+  else {
+    if (ib < 0) { d.nodes.push([q.x, q.y]); ib = d.nodes.length - 1; }
+    d.members.push([ia, ib, S.sel]);
+  }
+  SND.place(mats[S.sel].name); changed();
+}
+function hitNode(px, py, r) {
+  let best = -1, bd = r * r;
+  S.design.nodes.forEach((p, i) => { const dx = S.cam.X(p[0]) - px, dy = S.cam.Y(p[1]) - py, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+function hitMember(px, py, r) {
+  let best = -1, bd = r;
+  S.design.members.forEach((m, k) => {
+    const a = S.design.nodes[m[0]], b = S.design.nodes[m[1]];
+    const x1 = S.cam.X(a[0]), y1 = S.cam.Y(a[1]), x2 = S.cam.X(b[0]), y2 = S.cam.Y(b[1]);
+    const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / L2));
+    const d = Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    if (d < bd) { bd = d; best = k; }
+  });
+  return best;
+}
+function snapAt(px, py) {
+  let best = null, bd = Math.max(26, S.cam.s * S.lv.grid * 0.6) ** 2;
+  for (const s of S.lv.snaps) { const dx = S.cam.X(s.x) - px, dy = S.cam.Y(s.y) - py, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = s; } }
+  return best;
+}
+
+// ---------------- Touch / Maus ----------------
+const ptrs = new Map();
+let gesture = null;
+function pos(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+cv.addEventListener('pointerdown', e => {
+  if (!S.lv || !$('modal').classList.contains('hidden')) return;
+  SND.init();
+  cv.setPointerCapture(e.pointerId);
+  const p = pos(e); ptrs.set(e.pointerId, p);
+  if (ptrs.size === 2) {
+    const [a, b] = [...ptrs.values()];
+    gesture = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, s0: S.cam.s, ox: S.cam.ox, oy: S.cam.oy };
+    S.preview = null; return;
+  }
+  if (ptrs.size > 2) return;
+  const g = { type: 'pan', sx: p.x, sy: p.y, ox: S.cam.ox, oy: S.cam.oy, moved: false };
+  if (S.screen === 'build') {
+    const ni = hitNode(p.x, p.y, 26);
+    if (ni >= 0 && !S.del) { g.type = 'draw'; g.from = ni; S.preview = { from: ni, to: null }; }
+    else { g.tapNode = ni; g.tapMember = ni >= 0 ? -1 : hitMember(p.x, p.y, 16); }
+  }
+  gesture = g;
+});
+cv.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  const p = pos(e); ptrs.set(e.pointerId, p);
+  const g = gesture; if (!g) return;
+  if (g.type === 'pinch' && ptrs.size >= 2) {
+    const [a, b] = [...ptrs.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const s = Math.max(S.cam.fitS * 0.5, Math.min(Math.max(S.cam.fitS * 4, 140), g.s0 * d / g.d0));
+    const wx = (g.mx - g.ox) / g.s0, wy = (g.oy - g.my) / g.s0;
+    S.cam.s = s; S.cam.ox = mx - wx * s; S.cam.oy = my + wy * s;
+    return;
+  }
+  if (Math.hypot(p.x - g.sx, p.y - g.sy) > 8) g.moved = true;
+  if (g.type === 'draw') { S.preview.to = snapAt(p.x, p.y); S.preview.px = p; }
+  else if (g.type === 'pan' && g.moved) { S.cam.ox = g.ox + p.x - g.sx; S.cam.oy = g.oy + p.y - g.sy; }
+});
+function endPtr(e) {
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.delete(e.pointerId);
+  const g = gesture; if (!g) return;
+  if (g.type === 'pinch') { if (ptrs.size === 0) gesture = null; return; }
+  gesture = null;
+  if (g.type === 'draw') {
+    const to = S.preview && S.preview.to; S.preview = null;
+    if (to && g.moved) addMember(g.from, to);
+    return;
+  }
+  if (S.screen !== 'build' || g.moved) return;
+  if (g.tapNode >= S.lv.anchors.length && S.del) {
+    pushUndo(); S.design.members = S.design.members.filter(m => m[0] !== g.tapNode && m[1] !== g.tapNode); cleanup(); SND.remove(); changed();
+  } else if (g.tapMember >= 0) {
+    pushUndo();
+    if (S.del) { S.design.members.splice(g.tapMember, 1); cleanup(); SND.remove(); }
+    else { S.design.members[g.tapMember][2] = S.sel; SND.place(mats[S.sel].name); }
+    changed();
+  }
+}
+cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
+cv.addEventListener('wheel', e => { if (!S.lv) return; e.preventDefault(); const p = pos(e); const k = Math.exp(-e.deltaY * 0.0015); const s = Math.max(S.cam.fitS * 0.5, Math.min(Math.max(S.cam.fitS * 4, 140), S.cam.s * k)); const wx = (p.x - S.cam.ox) / S.cam.s, wy = (S.cam.oy - p.y) / S.cam.s; S.cam.s = s; S.cam.ox = p.x - wx * s; S.cam.oy = p.y + wy * s; }, { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+// ---------------- Test ----------------
+function startTest(sameSeed) {
+  const err = BB.validate(S.lv, S.design);
+  if (err) { toast(err); SND.remove(); return; }
+  SND.init();
+  if (!sameSeed) S.seed = 1 + Math.floor(Math.random() * 9999);
+  S.sim = new BB.Sim(S.lv, S.design, mats, { seed: S.seed });
+  S.screen = 'test'; S.acc = 0; S.doneT = 0; S.resultShown = false; S.highlight = null; S.debris = []; S.particles = []; S.mood = 'watch'; S.bubbles = [];
+  show('tools', false); show('testbar', true); show('modal', false); $('warn').classList.remove('on');
+  $('bspeed').textContent = '×' + S.speed;
+  $('tforces').classList.toggle('on', S.showForces);
+  fitCam();
+  if (S.lv.quake) say(S.lv.quake.pga >= 0.3 ? 'Festhalten, das wird heftig!' : 'Gleich wackelt es …', 0.6);
+  else if (S.lv.wind) say('Helm festhalten!', 0.6);
+  else say('Na dann, Gas geben!', 0.3);
+  SND.click();
+}
+function backToBuild() {
+  S.screen = 'build'; S.sim = null; S.highlight = null; S.mood = 'idle'; S.debris = []; S.particles = [];
+  show('testbar', false); show('tools', true); show('modal', false); SND.stopLoops(); updateHUD(); fitCam();
+}
+function say(text, delay) { S.bubbles = S.bubbles.filter(b => b.t0 > S.t + (delay || 0)); S.bubbles.push({ text, t0: S.t + (delay || 0), dur: 2.2 }); }
+function stepSim() {
+  const sim = S.sim;
+  if (sim.done) { S.doneT += 1 / 60; if (S.doneT > 4) return; }
+  const fallenBefore = sim.vehicles.filter(v => v.state === 'fall').length;
+  const ev = sim.step();
+  for (const e of ev) if (e.type === 'break') onBreak(e);
+  if (sim.vehicles.filter(v => v.state === 'fall').length > fallenBefore) { SND.thud(); vib([60, 40, 60]); S.shake += 6; S.mood = 'panic'; say(sim.vehicles.some(v => v.state === 'fall' && v.kind === 'worker') ? 'Kollege, halt dich fest!' : 'Ach du Schande!'); }
+  if (sim.done && !S.resultShown && S.doneT > (sim.result.win ? 0.6 : 1.4)) showResult();
+}
+function vib(p) { try { if (!SND.muted && navigator.vibrate) navigator.vibrate(p); } catch (e) { /* nicht unterstützt */ } }
+function onBreak(e) {
+  const heavy = /beton|mauer|stahlprofil/i.test(e.mat.name);
+  SND.crack(heavy); vib(25); S.shake = Math.min(14, S.shake + (heavy ? 6 : 3));
+  if (S.mood !== 'panic') { S.mood = 'panic'; say(['Da kracht was!', 'Oha!', 'Wer hat das gerechnet?!'][Math.floor(Math.random() * 3)]); }
+  const mx = (e.ax + e.bx) / 2, my = (e.ay + e.by) / 2;
+  for (const half of [[e.ax, e.ay, mx, my], [mx, my, e.bx, e.by]]) {
+    const cx = (half[0] + half[2]) / 2, cy = (half[1] + half[3]) / 2;
+    S.debris.push({ x: cx, y: cy, len: Math.hypot(half[2] - half[0], half[3] - half[1]), ang: Math.atan2(half[3] - half[1], half[2] - half[0]),
+      vx: e.vx * 0.5 + (Math.random() - 0.5) * 3, vy: e.vy * 0.5 + Math.random() * 3, va: (Math.random() - 0.5) * 6, mat: e.mat, life: 6 });
+  }
+  for (let k = 0; k < 14; k++) S.particles.push({ x: mx, y: my, vx: (Math.random() - 0.5) * 6, vy: Math.random() * 5, life: 0.6 + Math.random() * 0.6, c: e.mat.color, r: 1 + Math.random() * 3 });
+}
+function showResult() {
+  S.resultShown = true;
+  const sim = S.sim, lv = S.lv, res = sim.result;
+  const cost = BB.designCost(S.design, mats), over = cost > lv.budget;
+  const st = res.win && !over ? BB.stars(cost, lv.budget) : 0;
+  if (st > (prog.stars[lv.nr] || 0)) { prog.stars[lv.nr] = st; save(); }
+  S.mood = res.win ? 'cheer' : 'panic';
+  if (res.win) { SND.win(); say(over ? 'Hält, aber der Chef flucht über die Rechnung.' : ['Hält!', 'Statik passt!', 'Feierabend!', 'Läuft, Chef!'][Math.floor(Math.random() * 4)]); vib(40); }
+  else { SND.fail(); vib([100, 50, 100]); }
+  SND.stopLoops();
+  const ex = BB.Explain.explain(sim, S.stat);
+  S.highlight = ex.memberId;
+  const next = S.li + 1 < levels.length ? S.li + 1 : -1;
+  const head = res.win ? (over ? 'Hält – aber zu teuer!' : 'Hält!') : 'Eingestürzt!';
+  const sub = res.win ? (over ? `Kosten ${cost} €, Budget ${lv.budget} €. Spar noch ${cost - lv.budget} € ein.` : `Kosten ${cost} von ${lv.budget} €`) : esc(res.reason || 'Das Bauwerk hat nicht gehalten.');
+  modal(`<div class="rhead ${res.win ? 'win' : 'fail'}"><h2>${head}</h2>${res.win && !over ? `<div class="bigstars">${stars(st)}</div>` : ''}<p>${sub}</p></div>
+    <div class="explain">${ex.memberId ? `<span class="hl">Stab ${ex.memberId}</span> ` : ''}<p class="et">${esc(ex.title || '')}</p>${ex.lines.map(l => `<p>${esc(l)}</p>`).join('')}</div>
+    <label class="tog"><input type="checkbox" id="cforces" ${S.showForces ? 'checked' : ''}> Kräfte und Auflagerkräfte anzeigen</label>
+    <div class="btns">${res.win && !over && next >= 0 ? '<button class="big" id="rnext">Weiter</button>' : ''}<button class="${res.win && !over ? '' : 'big'}" id="rbuild">${res.win ? 'Verbessern' : 'Nachbessern'}</button></div>
+    <div class="btns small"><button id="rreplay">Nochmal ansehen</button><button id="rlevels">Levelauswahl</button></div>`);
+  $('card').classList.add('bottom');
+  requestAnimationFrame(() => { // Kamera so setzen, dass das Bauwerk über der Karte sichtbar bleibt
+    const top = $('hud').getBoundingClientRect().bottom + 6, bot = $('card').getBoundingClientRect().top - 6;
+    if (bot - top > 90) S.cam.fit(R.levelBounds(lv), { x: 10, y: top, w: S.W - 20, h: bot - top });
+  });
+  $('cforces').onchange = e => { S.showForces = e.target.checked; $('tforces').classList.toggle('on', S.showForces); };
+  if ($('rnext')) $('rnext').onclick = () => { $('card').classList.remove('bottom'); startLevel(next); };
+  $('rbuild').onclick = () => { $('card').classList.remove('bottom'); backToBuild(); };
+  $('rreplay').onclick = () => { $('card').classList.remove('bottom'); startTest(true); };
+  $('rlevels').onclick = () => { $('card').classList.remove('bottom'); goLevels(); };
+}
+
+// ---------------- Zeichnen ----------------
+function updateFx(dt) {
+  for (const d of S.debris) {
+    d.vy -= 9.81 * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.ang += d.va * dt; d.life -= dt;
+    const gy = BB.groundAt(S.lv, d.x) + 0.1;
+    if (d.y < gy) { d.y = gy; d.vy *= -0.3; d.vx *= 0.6; d.va *= 0.5; }
+  }
+  S.debris = S.debris.filter(d => d.life > 0);
+  for (const p of S.particles) { p.vy -= 6 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+  S.particles = S.particles.filter(p => p.life > 0);
+  S.shake *= Math.pow(0.02, dt);
+  S.bubbles = S.bubbles.filter(b => S.t < b.t0 + b.dur);
+}
+function bystanders() {
+  const lv = S.lv;
+  if (lv.kind === 'tower') return [[lv.bx0 - 1.2, 0], [lv.bx0 - 2.3, 0]];
+  return [[lv.roadB.x + 1.2, lv.roadB.y], [lv.roadB.x + 2.2, lv.roadB.y]];
+}
+function draw() {
+  const W = S.W, H = S.H;
+  ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+  if (!S.lv) return drawTitle(W, H);
+  const lv = S.lv, sim = S.screen === 'test' ? S.sim : null, cam = S.cam;
+  const storm = sim ? Math.min(1, sim.windNow / 35) : (lv.wind ? 0.25 : 0);
+  R.sky(ctx, W, H, S.t, storm);
+  // Erschütterung
+  const qa = sim ? sim.quakeAcc : 0;
+  const qs = sim && lv.quake ? Math.min(12, Math.abs(qa) * 1.6) : 0;
+  cam.shx = (Math.random() - 0.5) * S.shake + Math.sin(S.t * 2 * Math.PI * (lv.quake ? lv.quake.f : 1)) * qs;
+  cam.shy = (Math.random() - 0.5) * S.shake * 0.6 + (Math.random() - 0.5) * qs * 0.3;
+  const groundY = cam.Y(lv.kind === 'tower' ? 0 : lv.roadA.y);
+  R.skyline(ctx, W, groundY + 2);
+  R.crane(ctx, Math.min(W - 60, cam.X(lv.bx1 + 2.5)), groundY, Math.min(groundY - 120, 260), S.t, 0.9);
+  R.terrain(ctx, cam, lv, W, H, S.t);
+  // Raster, Fahrbahn, Ziel
+  if (S.screen === 'build') {
+    ctx.fillStyle = 'rgba(30,40,60,0.28)';
+    const rr = Math.max(1.2, Math.min(2.5, cam.s * 0.05));
+    for (const s of lv.snaps) { ctx.beginPath(); ctx.arc(cam.X(s.x), cam.Y(s.y), s.road ? rr * 1.6 : rr, 0, 6.283); ctx.fill(); }
+  }
+  if (lv.roadA && (S.screen === 'build')) {
+    ctx.setLineDash([8, 6]); ctx.strokeStyle = 'rgba(40,40,40,0.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cam.X(lv.roadA.x), cam.Y(lv.roadA.y)); ctx.lineTo(cam.X(lv.roadB.x), cam.Y(lv.roadB.y)); ctx.stroke(); ctx.setLineDash([]);
+  }
+  if (lv.kind === 'tower') {
+    ctx.setLineDash([10, 6]); ctx.strokeStyle = 'rgba(30,160,70,0.9)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(cam.X(lv.bx0 - 1), cam.Y(lv.H)); ctx.lineTo(cam.X(lv.bx1 + 1), cam.Y(lv.H)); ctx.stroke(); ctx.setLineDash([]);
+    R.pill(ctx, cam.X(lv.bx0 - 1) + 30, cam.Y(lv.H) - 12, `Ziel ${fmt(lv.H)} m`, 'rgba(30,160,70,0.95)', '#fff', 11);
+  }
+  // Bauwerk
+  let P;
+  if (sim) {
+    P = i => [sim.nodes[i].x, sim.nodes[i].y];
+    for (const m of sim.members) if (!m.broken) R.drawMember(ctx, cam, P(m.a), P(m.b), m.mat, { stress: m.ratio, highlight: S.highlight === m.id, t: S.t });
+    const hl = S.highlight && sim.members.find(m => m.id === S.highlight && m.broken);
+    if (hl) { // gebrochenen Stab als Geisterlinie markieren
+      ctx.setLineDash([6, 5]); R.drawMember(ctx, cam, P(hl.a), P(hl.b), hl.mat, { ghost: true, highlight: true, t: S.t }); ctx.setLineDash([]);
+    }
+  } else {
+    const d = S.design; P = i => d.nodes[i];
+    const sv = S.showForces && S.statView;
+    d.members.forEach((m, k) => R.drawMember(ctx, cam, d.nodes[m[0]], d.nodes[m[1]], mats[m[2]], { stress: sv ? sv[k] && sv[k].ratio : null, highlight: S.highlight === k + 1, t: S.t }));
+    if (S.preview && S.preview.to) {
+      const a = d.nodes[S.preview.from], b = S.preview.to, L = Math.hypot(b.x - a[0], b.y - a[1]), ok = L <= lv.maxLen + 1e-6;
+      ctx.globalAlpha = 0.75; R.drawMember(ctx, cam, a, [b.x, b.y], mats[S.sel], {}); ctx.globalAlpha = 1;
+      ctx.strokeStyle = ok ? '#1b7f3b' : '#d00'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cam.X(b.x), cam.Y(b.y), 12, 0, 6.283); ctx.stroke();
+      R.pill(ctx, cam.X(b.x), cam.Y(b.y) - 26, `${fmt(L)} m · ${Math.round(L * mats[S.sel].cost)} €${ok ? '' : ' · zu lang'}`, ok ? 'rgba(20,20,20,0.8)' : '#d00', '#fff', 12);
+    }
+  }
+  // Knoten
+  const nn = sim ? sim.nodes.length : S.design.nodes.length, nA = lv.anchors.length;
+  for (let i = 0; i < nn; i++) {
+    if (sim && i >= nA && sim.nodes[i].deg <= 0) continue;
+    const p = P(i); R.drawJoint(ctx, cam, p[0], p[1], i < nA);
+  }
+  if (S.preview && S.preview.from >= 0 && !sim) { const p = S.design.nodes[S.preview.from]; ctx.strokeStyle = '#ffb703'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cam.X(p[0]), cam.Y(p[1]), 14, 0, 6.283); ctx.stroke(); }
+  // Nutzlast
+  if (lv.kind === 'tower') {
+    const idx = sim ? sim.payloadNodes : BB.payloadNodeIdx(lv, S.design).filter(i => i < nA || S.design.members.some(m => m[0] === i || m[1] === i));
+    R.payload(ctx, cam, idx.map(P), lv.payload, S.t);
+  }
+  // Fahrzeuge
+  if (sim) for (const v of sim.vehicles) R.vehicle(ctx, cam, v, S.t);
+  else if (lv.truck) R.vehicle(ctx, cam, { kind: lv.truck.spec.kind, length: lv.truck.spec.length, axles: lv.truck.spec.axles, s: lv.roadA.x - lv.truck.spec.length - 1.5, ys: lv.truck.spec.axles.map(() => lv.roadA.y), state: 'wait', rot: 0, y: lv.roadA.y }, 0);
+  // Zuschauer
+  const by = bystanders();
+  by.forEach((b, k) => R.worker(ctx, cam.X(b[0]), cam.Y(b[1]), Math.max(9, Math.min(24, cam.s * 0.9)), S.mood, S.t, k * 1.7));
+  // Trümmer & Staub
+  for (const d of S.debris) {
+    ctx.save(); ctx.globalAlpha = Math.min(1, d.life); ctx.translate(cam.X(d.x), cam.Y(d.y)); ctx.rotate(-d.ang);
+    ctx.strokeStyle = d.mat.color; ctx.lineWidth = Math.max(2, Math.min(12, d.mat.width * cam.s)); ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(-d.len / 2 * cam.s, 0); ctx.lineTo(d.len / 2 * cam.s, 0); ctx.stroke(); ctx.restore();
+  }
+  for (const p of S.particles) { ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 2)); ctx.fillStyle = p.c; ctx.fillRect(cam.X(p.x), cam.Y(p.y), p.r, p.r); }
+  ctx.globalAlpha = 1;
+  // Kräfte
+  if (S.showForces) {
+    if (sim) R.forceOverlay(ctx, cam, P, sim.members, sim.reactions, sim.nodes.map(n => ({ x: n.x, y: n.y })));
+    else if (S.statView) R.forceOverlay(ctx, cam, P, S.statView, S.stat.reactions, lv.anchors);
+  }
+  // Wind/Regen
+  if (storm > 0.15) {
+    ctx.strokeStyle = `rgba(255,255,255,${0.25 + storm * 0.3})`; ctx.lineWidth = 1;
+    const n = Math.floor(30 + storm * 60);
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) { const x = ((i * 89 + S.t * (300 + storm * 900)) % (W + 100)) - 50, y = (i * 53 + S.t * 220) % H; ctx.moveTo(x, y); ctx.lineTo(x + 18 + storm * 30, y + 6); }
+    ctx.stroke();
+  }
+  // Sprechblasen
+  const b0 = by[0];
+  const vis = S.bubbles.filter(b => S.t >= b.t0).slice(-1);
+  for (const b of vis) R.bubble(ctx, cam.X(b0[0]), cam.Y(b0[1]) - Math.max(9, Math.min(24, cam.s * 0.9)) * 2.1, b.text);
+  // Test-Status
+  if (sim) updateTestbar(sim);
+}
+function updateTestbar(sim) {
+  const lv = S.lv; let txt = '';
+  const tt = sim.t - BB.CFG.loadStart;
+  if (lv.quake && tt > 0 && tt < lv.quake.dur) txt = `Beben ${fmt(Math.abs(sim.quakeAcc / 9.81))} g · noch ${Math.ceil(lv.quake.dur - tt)} s`;
+  else if (lv.wind && tt > 0 && tt < lv.wind.dur) txt = `Wind ${Math.round(sim.windNow * 3.6)} km/h · noch ${Math.ceil(lv.wind.dur - tt)} s`;
+  else if (sim.vehicles.some(v => v.state === 'drive')) txt = sim.vehicles[0].kind === 'worker' ? 'Bauarbeiter unterwegs' : `${sim.vehicles[0].name} fährt`;
+  if (sim.done) txt = sim.result.win ? 'Geschafft!' : 'Eingestürzt';
+  if (sim.brokenCount && !sim.done) txt += ` · ${sim.brokenCount} ${sim.brokenCount > 1 ? 'Stäbe' : 'Stab'} gebrochen`;
+  $('tstatus').textContent = txt;
+  // Geräusche
+  if (!sim.done) {
+    SND.rumble(lv.quake ? Math.min(1, Math.abs(sim.quakeEnv) * lv.quake.pga * 2.2) : 0);
+    SND.wind(lv.wind ? Math.min(1, sim.windNow / 45) : 0);
+    const drv = sim.vehicles.find(v => v.state === 'drive' && v.kind !== 'worker');
+    SND.engine(drv ? 1 : 0, drv ? drv.v : 0);
+  }
+}
+// Titelbild
+function drawTitle(W, H) {
+  R.sky(ctx, W, H, S.t, 0);
+  const gy = H * 0.78;
+  R.skyline(ctx, W, gy);
+  R.crane(ctx, W * 0.72, gy, H * 0.45, S.t, 1);
+  ctx.fillStyle = '#8a6844'; ctx.fillRect(0, gy, W, H - gy); ctx.fillStyle = '#5c9e3c'; ctx.fillRect(0, gy, W, 6);
+  // wackelndes Fachwerkhaus
+  const cam = { X: x => W * 0.3 + x * 26 + Math.sin(S.t * 9) * 3 * Math.max(0, Math.sin(S.t * 0.8)), Y: y => gy - y * 26, s: 26 };
+  const sway = Math.sin(S.t * 6) * 0.25 * Math.max(0, Math.sin(S.t * 0.8));
+  const n = (x, y) => [x + sway * y / 6, y];
+  const mt = mats.length ? mats : [{ color: '#b4783a', dark: '#7a4a1e', width: 0.22, icon: 'holz' }];
+  const m0 = mt[0], m1 = mt[Math.min(1, mt.length - 1)];
+  for (let k = 0; k < 3; k++) {
+    R.drawMember(ctx, cam, n(-2, k * 2), n(-2, k * 2 + 2), m0, {}); R.drawMember(ctx, cam, n(2, k * 2), n(2, k * 2 + 2), m0, {});
+    R.drawMember(ctx, cam, n(-2, k * 2 + 2), n(2, k * 2 + 2), m0, {});
+    R.drawMember(ctx, cam, n(-2, k * 2), n(2, k * 2 + 2), m1, {}); R.drawMember(ctx, cam, n(2, k * 2), n(-2, k * 2 + 2), m1, {});
+  }
+  ctx.fillStyle = '#2a7d8c'; const tp = n(0, 6); ctx.fillRect(cam.X(tp[0]) - 60, cam.Y(6) - 34, 120, 34);
+  R.worker(ctx, W * 0.12, gy, 22, Math.sin(S.t * 0.8) > 0.3 ? 'panic' : 'cheer', S.t, 0);
+  R.worker(ctx, W * 0.55, gy, 22, 'watch', S.t, 2);
+  R.worker(ctx, W * 0.9, gy, 20, Math.sin(S.t * 0.8) > 0.3 ? 'panic' : 'idle', S.t, 4);
+}
+let last = performance.now();
+function frame(ts) {
+  const dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts; S.t += dt;
+  if (S.screen === 'test' && S.sim) {
+    S.acc += dt * S.speed; let n = 0;
+    while (S.acc >= BB.CFG.dt && n < 8) { stepSim(); S.acc -= BB.CFG.dt; n++; }
+    if (n >= 8) S.acc = 0;
+  }
+  if (S.lv) updateFx(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// ---------------- Knöpfe ----------------
+function soundToggle() { SND.init(); prog.muted = !SND.muted; SND.setMuted(prog.muted); save(); updateHUD(); $('titlesound').textContent = prog.muted ? 'Ton aus' : 'Ton an'; if (!prog.muted) SND.click(); }
+$('play').onclick = () => { SND.init(); SND.click(); goLevels(); };
+$('titlesound').onclick = soundToggle; $('titlesound').textContent = prog.muted ? 'Ton aus' : 'Ton an';
+$('lback').onclick = goTitle;
+$('unlockall').onclick = () => { prog.unlockAll = !prog.unlockAll; save(); goLevels(); };
+$('bback').onclick = () => { if (S.screen === 'test') backToBuild(); goLevels(); };
+$('bsound').onclick = soundToggle;
+$('binfo').onclick = showIntro;
+$('bundo').onclick = () => { if (!S.undo.length) return; S.design = JSON.parse(S.undo.pop()); SND.remove(); changed(); };
+$('bdel').onclick = () => { S.del = !S.del; SND.click(); buildToolbar(); if (S.del) toast('Löschen: Tipp auf einen Stab oder Knoten.'); };
+$('bstat').onclick = () => { S.showForces = !S.showForces; SND.click(); buildToolbar(); if (S.showForces) toast(S.stat && S.stat.ok ? 'Statik: Stabkräfte in kN (+ Zug, − Druck), grüne Pfeile = Auflagerkräfte' : 'Statik geht erst, wenn das Bauwerk unbeweglich ist.'); };
+$('bfit').onclick = () => { fitCam(); SND.click(); };
+$('btest').onclick = () => startTest(false);
+$('bstop').onclick = backToBuild;
+$('bspeed').onclick = () => { S.speed = S.speed === 1 ? 3 : 1; $('bspeed').textContent = '×' + S.speed; SND.click(); };
+$('tforces').onclick = () => { S.showForces = !S.showForces; $('tforces').classList.toggle('on', S.showForces); };
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+document.addEventListener('visibilitychange', () => { if (document.hidden) SND.stopLoops(); });
+resize(); requestAnimationFrame(frame);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// Testschnittstelle (für automatische Tests)
+window.__bb = { S, levels, mats, startLevel, startTest, backToBuild, goLevels, goTitle, stepSim, showResult, changed,
+  setDesign(d) { S.design = JSON.parse(JSON.stringify(d)); changed(); }, fitCam };
+})();
+</script>
+</body>
+</html>

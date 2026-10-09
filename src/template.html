@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bebenbau">
+<meta name="theme-color" content="#ffb703">
+<meta name="description" content="Bebenbau – Brücken und Türme bauen, die Lkw, Sturm und Erdbeben aushalten.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Bebenbau</title>
+<style>/*CSS*/</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="title" class="screen">
+  <div class="logo"><div class="stripes"></div><h1>BEBEN<span>BAU</span></h1><div class="stripes"></div></div>
+  <p class="tag">Bau es so, dass es hält.<br>Lkw, Sturm und Erdbeben warten schon.</p>
+  <div class="tbtns"><button id="play" class="big">Spielen</button><button id="titlesound">Ton an</button></div>
+  <p class="foot">Prototyp · Lastfälle: Vegapunk · Bau: Franky</p>
+</div>
+
+<div id="levels" class="screen hidden">
+  <div class="lhead"><button id="lback" class="icon" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>Baustellen</h2><span id="startotal"></span></div>
+  <div id="levelgrid"></div>
+  <button id="unlockall" class="linkbtn"></button>
+</div>
+
+<div id="hud" class="hidden">
+  <div class="top">
+    <button id="bback" class="icon" aria-label="Levelauswahl"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="tmid"><div id="ltitle"></div><div class="bwrap"><div id="budgetbar"></div><span id="budget"></span></div></div>
+    <button id="binfo" class="icon" aria-label="Info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 11v6M12 7.2v.1" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg></button>
+    <button id="bsound" class="icon" aria-label="Ton"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="x" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </div>
+  <div id="loadchip"></div>
+  <div id="warn"></div>
+</div>
+
+<div id="tools" class="hidden">
+  <div id="matinfo"></div>
+  <div id="mats"></div>
+  <div class="acts">
+    <button id="bundo"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -3)"/></svg>Zurück</button>
+    <button id="bdel"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>Löschen</button>
+    <button id="bstat"><svg viewBox="0 0 24 24"><path d="M3 19 12 5l9 14zM12 5v14M7.5 12h9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>Statik</button>
+    <button id="bfit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Ansicht</button>
+    <button id="btest" class="go"><svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z" fill="currentColor"/></svg>Test</button>
+  </div>
+</div>
+
+<div id="testbar" class="hidden">
+  <div id="tstatus"></div>
+  <div class="acts">
+    <button id="bstop"><svg viewBox="0 0 24 24"><path d="M14.5 4.5 19.5 9.5 9 20H4v-5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>Bauen</button>
+    <button id="bspeed">×1</button>
+    <button id="tforces"><svg viewBox="0 0 24 24"><path d="M4 12h13M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Kräfte</button>
+  </div>
+</div>
+
+<div id="modal" class="hidden"><div id="card"></div></div>
+<div id="toast"></div>
+<script>window.LEVELDATA = /*DATA*/;</script>
+<script>/*JS*/</script>
+</body>
+</html>
