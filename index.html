@@ -1009,7 +1009,7 @@ const slider = (id, lab, min, max, step, val, unit) => `<label class="lsl"><span
 
 // 1.1 Pfeil-Puzzle
 LESSONS.push({ id: '1.1', ch: 1, name: 'Pfeil-Puzzle', sec: 'Was ist eine Kraft?',
-  intro: ['Eine Kraft hat drei Eigenschaften: <b>Betrag</b> (wie groß, in N oder kN), <b>Richtung</b> und <b>Angriffspunkt</b>. Darum zeichnen wir sie als Pfeil.', 'Merksatz: 1 kN ≈ das Gewicht von 100 kg.'],
+  intro: ['Eine Kraft hat drei Eigenschaften: <b>Betrag</b> (wie groß, in N oder kN), <b>Richtung</b> und <b>Angriffspunkt</b>. Darum zeichnen wir sie als Pfeil.', 'Merksatz: 1 kN ≈ das Gewicht von 100 kg.<br><small>„gerechnet mit g ≈ 10 m/s², genau 9,81 m/s²“</small>'],
   introPic: () => svg(axes(30, 200) + boxAt(170, 120) + farr(192, 120, 3, 0, 22, RED, '3 kN') + txt(250, 160, 'Betrag · Richtung', '#555', 12) + txt(250, 176, 'Angriffspunkt', '#555', 12) + `<circle cx="192" cy="120" r="4" fill="${RED}"/>`),
   task: 'Ziehe deinen blauen Pfeil (Betrag und Richtung), bis die Kiste stillsteht.',
   init: () => ({ P: [1, 1] }),
@@ -1094,14 +1094,14 @@ function seesawPic(a1, a2, id) {
 LESSONS.push({ id: '1.4', ch: 1, name: 'Wippe', sec: 'Das Moment',
   intro: ['Eine Kraft, die nicht durch den Drehpunkt geht, will drehen. Das <b>Moment</b> ist <span class="fm">M = F · a</span> (Kraft mal Hebelarm, senkrechter Abstand der Wirkungslinie zum Drehpunkt), Einheit kNm.'],
   introPic: () => svg(axes(26, 214) + `<circle cx="80" cy="130" r="5" fill="${DK}"/>` + bar(80, 260, 130) + farr(240, 126, 0, -2, 25, RED, 'F') + dim(80, 240, 165, 'a') + `<path d="M120 100 A 50 50 0 0 1 130 160" fill="none" stroke="${BLU}" stroke-width="2.5"/>` + txt(140, 96, 'M = F · a', BLU)),
-  task: 'Zwei Kinder auf einer Wippe (30 kg und 20 kg). Verschiebe sie, bis die Wippe waagerecht steht.',
+  task: 'Zwei Kinder auf einer Wippe (30 kg ≙ 0,3 kN und 20 kg ≙ 0,2 kN, gerechnet mit g ≈ 10 m/s², genau 9,81 m/s²). Verschiebe sie, bis die Wippe waagerecht steht.',
   init: () => ({ a1: 3, a2: 1 }),
   controls: st => slider('s_a1', 'Kind links (30 kg)', 0.5, 3.5, 0.5, st.a1, 'm') + slider('s_a2', 'Kind rechts (20 kg)', 0.5, 3.5, 0.5, st.a2, 'm'),
   bind: (st, r) => { onIn('s_a1', v => { st.a1 = v; r(); }, 'm'); onIn('s_a2', v => { st.a2 = v; r(); }, 'm'); },
   draw: st => seesawPic(st.a1, st.a2, 'tsvg'),
   status(st) { const m = seesaw(0.3, st.a1, 0.2, st.a2); return m.balanced ? '<b class="okc">Die Wippe steht waagerecht.</b>' : `Die Wippe kippt nach ${m.net > 0 ? 'links' : 'rechts'}: ${de(Math.abs(m.net))} kNm Unterschied`; },
   check(st) { const ok = seesaw(0.3, st.a1, 0.2, st.a2).balanced; return { ok, msg: ok ? '' : 'Die Wippe kippt noch. Vergleiche die beiden Momente links und rechts.' }; },
-  explain: () => ({ text: '„Links 0,3 kN × 2 m = 0,6 kNm, rechts 0,2 kN × 3 m = 0,6 kNm. Gleiche Momente, also Gleichgewicht.“ (Kinder mit 30 kg und 20 kg; gerechnet wird mit ihrem Gewicht, nicht der Masse. Ein Moment hat immer die Einheit Kraft × Länge.)',
+  explain: () => ({ text: '„Links 0,3 kN × 2 m = 0,6 kNm, rechts 0,2 kN × 3 m = 0,6 kNm. Gleiche Momente, also Gleichgewicht.“ (Kinder mit 30 kg und 20 kg; gerechnet wird mit ihrem Gewicht, nicht der Masse. Ein Moment hat immer die Einheit Kraft × Länge.)<br><small>30 kg → 0,3 kN, 20 kg → 0,2 kN: gerechnet mit g ≈ 10 m/s², genau 9,81 m/s².</small>',
     formula: 'M = F · a<br>0,3 kN · 2 m = 0,2 kN · 3 m = 0,6 kNm', pic: seesawPic(2, 3) }),
 });
 
@@ -1225,7 +1225,7 @@ LESSONS.push({ id: '2.3', ch: 2, name: 'Schätz mal', sec: 'Auflagerkräfte bere
     st.shown = true; const path = []; for (let i = 0; i <= 30; i++) path.push(6 * i / 30); for (let i = 30; i >= 10; i--) path.push(6 * i / 30);
     let k = 0; const step = () => { st.x = Math.round(path[k] * 100) / 100; r(); k++; if (k < path.length) setTimeout(step, 45); else done(); }; step();
   },
-  check(st) { const r = beam({ L: 6, sup: efSup, P: [{ x: 2, F: 30 }] }).R, ok = near(st.A, r[0].V, 2) && near(st.B, r[1].V, 2);
+  check(st) { const r = beam({ L: 6, sup: efSup, P: [{ x: 2, F: 30 }] }).R, ok = near(st.A, r[0].V, 1) && near(st.B, r[1].V, 1);
     return { ok, msg: ok ? '' : `Deine Schätzung: A = ${de(st.A)} kN, B = ${de(st.B)} kN. Echt: A = ${de(r[0].V)} kN, B = ${de(r[1].V)} kN.` }; },
   explain: () => { const r = beam({ L: 6, sup: efSup, P: [{ x: 2, F: 30 }] }).R; return { text: `Beispiel: L = 6 m, a = 2 m, F = 30 kN ergibt A = ${de(r[0].V)} kN, B = ${de(r[1].V)} kN. Das Lager näher an der Last trägt mehr.`,
     formula: 'B = F·a / L = 30 kN · 2 m / 6 m = 10 kN<br>A = F·(L−a) / L = 30 kN · 4 m / 6 m = 20 kN', pic: beamPic({ L: 6, sup: efSup, P: [{ x: 2, F: 30 }], R: r, k: 1.6 }) }; },
