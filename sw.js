@@ -1,5 +1,5 @@
-// Bebenbau Service Worker – Version a5da88c36d
-const CACHE = 'bebenbau-a5da88c36d';
+// Bebenbau Service Worker – Version 3f30948145
+const CACHE = 'bebenbau-3f30948145';
 const FILES = ['./', './index.html', './manifest.json', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

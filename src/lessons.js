@@ -123,7 +123,11 @@ function beamPic(o) {
       const right = r.x > L / 2, ax = X + (r.t === 'ein' ? 30 : right ? -24 : 24), kk = Math.min(k, 40 / Math.max(1, Math.abs(r.V)));
       s += farrTo(ax, y + 34, 0, r.V, kk, GRN, '') + txt(ax + (right ? -8 : 8), y + 34 + r.V * kk - 6, `${de(r.V)} kN`, GRN, 13, right ? 'end' : 'start');
     }
-    if (Math.abs(r.M) > 1e-6) s += `<path d="M${X + 22} ${y - 22} A 26 26 0 0 1 ${X + 22} ${y + 22}" fill="none" stroke="${GRN}" stroke-width="2.6"/>` + txt(X + 50, y - 26, `${de(Math.abs(r.M))} kNm`, GRN);
+    if (Math.abs(r.M) > 1e-6) {  // Einspannmoment: Bogen mit Pfeilspitze, gegen den Uhrzeiger bei M > 0
+      const sg = r.M > 0 ? 1 : -1, R0 = 26, th = 60 * Math.PI / 180, P = t => [X + R0 * Math.cos(t), y - R0 * Math.sin(t)];
+      const [x0, y0] = P(-sg * th), [x1, y1] = P(sg * th), tx = -Math.sin(sg * th) * sg, ty = -Math.cos(sg * th) * sg;
+      s += `<path d="M${x0} ${y0} A ${R0} ${R0} 0 0 ${sg > 0 ? 0 : 1} ${x1} ${y1}" fill="none" stroke="${GRN}" stroke-width="2.6"/>` + arr(x1 - tx * 9, y1 - ty * 9, x1 + tx * 3, y1 + ty * 3, GRN, '', 2.6) + txt(X + 50, y - 26, `${de(Math.abs(r.M))} kNm`, GRN);
+    }
   });
   (o.labels || []).forEach(([x, lab]) => { s += txt(bxp(x, L), y + 52, lab, DK, 13); });
   (o.dims || []).forEach(([a, b, lab]) => { s += dim(bxp(a, L), bxp(b, L), (o.dy || 182), lab); });
@@ -236,15 +240,20 @@ LESSONS.push({ id: '1.4', ch: 1, name: 'Wippe', sec: 'Das Moment',
 // 1.5 Balanceakt
 const BAL = { L: 6, loads: [[1, 6], [4, 3]], H0: 2 };
 function balSums(st) { const Fz = st.S - 9, Fx = BAL.H0 + st.H, M = st.S * st.xs - (6 * 1 + 3 * 4); return { Fx, Fz, M }; }
+function lbl(x, y, t, c, anchor = 'middle') {
+  const w = t.length * 7.4 + 8, x0 = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x;
+  return `<rect x="${x0}" y="${y - 12}" width="${w}" height="16" rx="4" fill="#fff" stroke="${c}" stroke-width="1" opacity="0.95"/>` + `<text x="${x0 + w / 2}" y="${y}" fill="${c}" font-size="12" font-weight="800" text-anchor="middle">${t}</text>`;
+}
 function balPic(st, id) {
-  const L = BAL.L, y = 120, X = x => bxp(x, L), z = balSums(st), ang = Math.max(-8, Math.min(8, z.M * 0.6));
-  let s = axes(26, 214) + `<g transform="rotate(${-ang} ${X(st.xs)} ${y})">` + bar(X(0), X(L), y);
-  BAL.loads.forEach(([x, F]) => { s += farrTo(X(x), y - 5, 0, -F, 7, RED, `${de(F)} kN`); });
-  s += farrTo(X(0) - 2, y, BAL.H0, 0, 9, RED, '') + txt(X(0) - 4, y - 12, '2 kN', RED, 12);
-  if (st.H) s += farrTo(X(L) + (st.H < 0 ? 2 : 0), y, st.H, 0, 9, BLU, `${de(Math.abs(st.H))} kN`);
-  s += '</g>' + `<rect x="${X(st.xs) - 6}" y="${y + 5}" width="12" height="${200 - y - 5}" fill="#8d99ae" stroke="${DK}" stroke-width="1.5"/>` + hatch(X(st.xs) - 18, X(st.xs) + 18, 200);
-  s += farrTo(X(st.xs) + 16, y + 6, 0, st.S, 4, BLU, `${de(st.S)} kN`);
-  s += dim(X(0), X(st.xs), 215, `${de(st.xs)} m`);
+  const L = BAL.L, y = 100, X = x => bxp(x, L), z = balSums(st), ang = Math.max(-8, Math.min(8, z.M * 0.6)), xs = X(st.xs), hy = y + 4;
+  let s = axes(26, 214) + `<g transform="rotate(${-ang} ${xs} ${hy})">` + bar(X(0), X(L), y);
+  BAL.loads.forEach(([x, F]) => { s += farrTo(X(x), y - 5, 0, -F, 7, RED, '') + lbl(X(x), y - 5 - F * 7 - 6, `${de(F)} kN`, RED); });
+  s += farrTo(X(0) - 1, y, BAL.H0, 0, 9, RED, '') + lbl(X(0) - 10, y - 12, `${de(BAL.H0)} kN`, RED, 'middle') + '</g>';
+  s += supFest(xs, hy);  // Festlager: gelenkig, nimmt H und V auf, kein Moment
+  if (st.H) s += farrTo(xs - (st.H < 0 ? -1 : 1) * 12, hy, st.H, 0, 9, BLU, '') + lbl(xs - (st.H < 0 ? -1 : 1) * (12 + Math.abs(st.H) * 9 + 4), hy + 4, `${de(Math.abs(st.H))} kN`, BLU, st.H < 0 ? 'start' : 'end');
+  if (st.S) s += farrTo(xs, hy + 24, 0, st.S, 3.5, BLU, '') ;
+  s += lbl(xs + 14, hy + 24 + st.S * 3.5 - 2, `${de(st.S)} kN ↑`, BLU, 'start');
+  s += dim(X(0), xs, 216, `${de(st.xs)} m`);
   return svg(s, 230, id);
 }
 const lamp = (lab, v, u) => `<span class="lamp ${Math.abs(v) < 1e-9 ? 'g' : 'r'}">${lab} = ${de(v)} ${u}</span>`;
@@ -415,7 +424,7 @@ function list() {
   r.innerHTML = head('Lernen') + '<p class="lsub">Technische Mechanik ohne Materialien: nur starre Körper und Kräfte.</p>' + CHAPTERS.map(c => {
     const ls = LESSONS.filter(l => l.ch === c.nr), n = ls.filter(l => prog.done[l.id]).length;
     return `<div class="chap"><div class="chead"><span class="cnr">Kapitel ${c.nr}</span><b>${c.title}</b><span class="cprog">${n}/${ls.length}</span></div>` +
-      ls.map(l => `<button class="les${prog.done[l.id] ? ' done' : ''}" data-id="${l.id}"><span class="lnr2">${l.id.replace('.', ',')}</span><span class="lnm">${l.name}<small>${l.sec}</small></span><span class="lck">${prog.done[l.id] ? '✓' : '›'}</span></button>`).join('') +
+      ls.map(l => `<button class="les${prog.done[l.id] ? ' done' : ''}" data-id="${l.id}"><span class="lnr2">${l.id}</span><span class="lnm">${l.name}<small>${l.sec}</small></span><span class="lck">${prog.done[l.id] ? '✓' : '›'}</span></button>`).join('') +
       (n === ls.length ? `<div class="note">${c.note}</div>` : '') + '</div>';
   }).join('');
   r.scrollTop = 0;
@@ -424,7 +433,7 @@ function list() {
 }
 function intro(l) {
   const r = root();
-  r.innerHTML = head(`${l.id.replace('.', ',')} ${l.name}`) + `<div class="lcard"><p class="lsec">${l.sec}</p>${l.introPic()}${l.intro.map(p => `<p>${p}</p>`).join('')}</div><div class="btns"><button id="lgo" class="big">Los geht's</button></div>`;
+  r.innerHTML = head(`${l.id} ${l.name}`) + `<div class="lcard"><p class="lsec">${l.sec}</p>${l.introPic()}${l.intro.map(p => `<p>${p}</p>`).join('')}</div><div class="btns"><button id="lgo" class="big">Los geht's</button></div>`;
   r.scrollTop = 0;
   $('lnback').onclick = () => { click(); list(); };
   $('lgo').onclick = () => { click(); task(l); };
@@ -432,7 +441,7 @@ function intro(l) {
 function task(l) {
   const r = root(), st = l.init();
   let busy = false;
-  r.innerHTML = head(`${l.id.replace('.', ',')} ${l.name}`) + `<div class="lcard"><p class="ltask">${l.task}</p><div id="lpic"></div><div id="lstat"></div><div id="lctl"></div><div id="lmsg"></div></div><div class="btns"><button id="lcheck" class="big">Prüfen</button></div>`;
+  r.innerHTML = head(`${l.id} ${l.name}`) + `<div class="lcard"><p class="ltask">${l.task}</p><div id="lpic"></div><div id="lstat"></div><div id="lctl"></div><div id="lmsg"></div></div><div class="btns"><button id="lcheck" class="big">Prüfen</button></div>`;
   r.scrollTop = 0;
   const redraw = () => { $('lpic').innerHTML = l.draw(st); $('lstat').innerHTML = l.status ? l.status(st) : ''; if (l.after_draw) l.after_draw(st, redraw); bindDrag(); };
   const ctl = () => { $('lctl').innerHTML = l.controls ? l.controls(st) : ''; if (l.bind) l.bind(st, redraw); };
@@ -463,7 +472,7 @@ function explainCard(l, st) {
   const e = l.explain(st), r = root(), ls = LESSONS.filter(x => x.ch === l.ch), last = ls[ls.length - 1] === l, nxt = LESSONS[LESSONS.indexOf(l) + 1];
   const ch = CHAPTERS.find(c => c.nr === l.ch);
   const live = $('lpic') ? $('lpic').innerHTML : '';
-  r.innerHTML = head(`${l.id.replace('.', ',')} ${l.name}`) + (l.keepLive && live ? `<div class="lcard">${live}</div>` : '') +
+  r.innerHTML = head(`${l.id} ${l.name}`) + (l.keepLive && live ? `<div class="lcard">${live}</div>` : '') +
     `<div class="lcard ex"><p class="okh">Geschafft!</p><p class="et">${e.text}</p><div class="fm fbox">${e.formula}</div>${e.pic}</div>` +
     (l.id === '2.4' ? `<div class="lcard"><p class="ltask">Probier es aus: Wie wächst das Einspannmoment mit der Länge?</p><div id="lpic">${kragPic(st.L || 3, 'tsvg', true)}</div><div id="lstat"></div>${slider('s_L', 'Balkonlänge L', 1, 4, 0.5, st.L || 3, 'm')}</div>` : '') +
     (last ? `<div class="note">${ch.note}</div>` : '') +
