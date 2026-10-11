@@ -101,3 +101,36 @@ button:active { transform: translateY(2px); }
 #toast { position: fixed; left: 50%; top: calc(var(--safe-t) + 110px); transform: translate(-50%, -20px); background: var(--d); color: #fff; padding: 9px 14px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; z-index: 20; }
 #toast.on { opacity: 1; transform: translate(-50%, 0); }
 @media (orientation: landscape) and (max-height: 500px) { .tag { margin: 10px 0; } #title { padding-top: 12px; } }
+/* Lernen (Technische Mechanik) */
+#lernen { background: linear-gradient(#cfe8ff, #9fd0f5); overflow-y: auto; z-index: 5; }
+#lernen .lsub { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.chap { background: rgba(255,255,255,0.55); border-radius: 16px; padding: 10px; margin-bottom: 12px; }
+.chead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 17px; }
+.chead b { flex: 1; } .cnr { font-weight: 800; color: var(--o); font-size: 13px; } .cprog { font-weight: 800; background: var(--d); color: var(--y); padding: 2px 8px; border-radius: 8px; font-size: 13px; }
+.les { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fffdf6; border-radius: 12px; padding: 9px 10px; margin-bottom: 7px; box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
+.les.done { background: #e6f6e9; }
+.lnr2 { font-size: 20px; font-weight: 900; color: var(--o); min-width: 34px; }
+.lnm { flex: 1; font-weight: 800; font-size: 15px; } .lnm small { display: block; font-weight: 600; font-size: 12px; color: #666; }
+.lck { font-size: 20px; font-weight: 900; color: #1f8a3b; }
+.note { background: #fff3c4; border-radius: 12px; padding: 8px 10px; font-size: 13.5px; margin-top: 6px; }
+.lcard { background: var(--card); border: 3px solid var(--d); border-radius: 16px; padding: 10px 12px; margin-bottom: 10px; font-size: 15px; }
+.lcard p { margin: 6px 0; }
+.lsec { font-weight: 800; color: var(--o); font-size: 13px; }
+.ltask { font-weight: 700; }
+svg.lg { width: 100%; height: auto; display: block; background: #fff; border-radius: 10px; border: 1px solid #e5e0d0; margin: 6px 0; }
+.fm { font-family: "DejaVu Serif", Georgia, serif; font-style: italic; }
+.fbox { background: #eef5ff; border-radius: 10px; padding: 8px 10px; margin: 6px 0; font-size: 15px; line-height: 1.5; }
+.lsl { display: grid; grid-template-columns: 1fr 72px; grid-template-rows: auto auto; gap: 2px 8px; margin: 8px 0; font-size: 13.5px; font-weight: 700; }
+.lsl input { grid-column: 1 / 3; width: 100%; height: 28px; accent-color: var(--o); }
+.lsl b { text-align: right; grid-row: 1; grid-column: 2; }
+#lstat { font-size: 13.5px; font-weight: 700; text-align: center; min-height: 20px; }
+.lamp { display: inline-block; margin: 2px 3px; padding: 3px 8px; border-radius: 9px; color: #fff; font-weight: 800; font-size: 13px; }
+.lamp.g { background: #2a9d48; } .lamp.r { background: #e63946; } .lamp.o { background: #9aa0a6; }
+.mini { font-size: 12px; font-weight: 600; color: #444; margin-top: 3px; }
+.okc { color: #1f8a3b; } .okh { font-size: 22px; font-weight: 900; color: #1f8a3b; margin: 0 0 4px !important; }
+.lbad { background: #ffe1df; border-radius: 10px; padding: 8px 10px; font-weight: 700; font-size: 14px; margin-top: 6px; }
+.slots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 2px 0 8px; }
+.slot { background: #fff; border: 2px solid #3a6ea5; border-radius: 10px; padding: 7px 9px; font-weight: 800; font-size: 13px; }
+.slot.fix { border-color: #999; color: #555; }
+.lt { border-collapse: collapse; font-size: 12px; width: 100%; } .lt th, .lt td { border: 1px solid #d8d1bd; padding: 3px 4px; text-align: left; } .lt th { background: #f1ecdc; }
+#lernen .btns { margin-bottom: 16px; }

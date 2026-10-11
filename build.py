@@ -8,7 +8,7 @@
 import hashlib, json, os, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, 'src')
-MODULES = ['core.js', 'levels.js', 'sim.js', 'statics.js', 'explain.js', 'render.js', 'audio.js', 'game.js']
+MODULES = ['core.js', 'levels.js', 'sim.js', 'statics.js', 'explain.js', 'lessons.js', 'render.js', 'audio.js', 'game.js']
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 push = '--push' in sys.argv
 src_json = args[0] if args else '/workspace/spiel/lastfaelle.json'
